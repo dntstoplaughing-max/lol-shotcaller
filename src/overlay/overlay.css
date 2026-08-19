@@ -1,0 +1,243 @@
+/* Shotcaller overlay — a dark glass card designed to sit over the game.
+   Single fixed dark theme: the "page" behind it is League itself. */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: rgba(7, 11, 18, 0.88);
+  --edge: rgba(200, 170, 110, 0.4);
+  --gold: #c8aa6e;
+  --gold-dim: #7a6a45;
+  --teal: #0ac8b9;
+  --text: #e8e3d7;
+  --muted: #9a937f;
+  --danger: #e06a5a;
+}
+
+html,
+body {
+  background: transparent;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.45;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Demo mode paints a stand-in "game" behind the card for screenshots/dev. */
+body.demo {
+  background: linear-gradient(135deg, #0e1a26 0%, #123024 55%, #0a1420 100%);
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
+}
+
+body.interactive #root {
+  border-color: var(--teal);
+}
+
+#bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(200, 170, 110, 0.18);
+}
+
+body.interactive #bar {
+  -webkit-app-region: drag; /* drag the window by its header when interactive */
+}
+
+#brand {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+}
+
+#clock {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--teal);
+  font-weight: 600;
+}
+
+#pill {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-dim);
+  color: var(--muted);
+}
+
+/* The clock claims the flexible gap when visible; otherwise the pill does. */
+#clock[hidden] + #pill {
+  margin-left: auto;
+}
+
+#pill.champselect { color: var(--gold); border-color: var(--gold); }
+#pill.planning { color: var(--teal); border-color: var(--teal); animation: pulse 1.2s ease-in-out infinite; }
+#pill.live { color: var(--teal); border-color: var(--teal); }
+#pill.done { color: var(--muted); }
+#pill.error { color: var(--danger); border-color: var(--danger); }
+
+@keyframes pulse {
+  50% { opacity: 0.45; }
+}
+
+#status {
+  padding: 6px 0;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+#teams {
+  padding: 4px 0 2px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(154, 147, 127, 0.35);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+  white-space: nowrap;
+}
+
+.chip .pos {
+  color: var(--muted);
+  margin-left: 3px;
+  font-size: 9.5px;
+}
+
+.chip.me {
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.chip.enemy {
+  border-color: rgba(224, 106, 90, 0.5);
+}
+
+#vsrow {
+  text-align: center;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  padding: 2px 0;
+}
+
+#bans {
+  padding: 4px 0 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+#bans b {
+  color: var(--gold-dim);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+#plan {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 6px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.sec {
+  margin-bottom: 10px;
+  padding-left: 8px;
+  border-left: 2px solid rgba(200, 170, 110, 0.25);
+}
+
+.sec h3 {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+
+.sec .body {
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.sec.active {
+  border-left-color: var(--teal);
+}
+
+.sec.active h3 {
+  color: var(--teal);
+}
+
+.sec.active h3::after {
+  content: "  ● NOW";
+  color: var(--teal);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+/* Compact mode: only the win condition + the section the clock points at. */
+body.collapsed .sec {
+  display: none;
+}
+
+body.collapsed .sec.pinned,
+body.collapsed .sec.active {
+  display: block;
+}
+
+body.collapsed #teams,
+body.collapsed #bans,
+body.collapsed #status {
+  display: none;
+}
+
+/* In compact mode the card hugs its content; the freed area is transparent
+   (and click-through), so the in-game footprint is as small as possible. */
+body.collapsed #root {
+  height: auto;
+}
+
+#hint {
+  padding-top: 6px;
+  border-top: 1px solid rgba(200, 170, 110, 0.14);
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+
+body.interactive #hint {
+  color: var(--teal);
+}

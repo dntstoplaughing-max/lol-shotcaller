@@ -1,0 +1,20 @@
+{
+  "phase": "GameStart",
+  "gameData": {
+    "queue": { "id": 420, "description": "Ranked Solo/Duo" },
+    "teamOne": [
+      { "championId": 54, "summonerId": 310010, "puuid": "puuid-top", "gameName": "RockSolid", "selectedPosition": "TOP" },
+      { "championId": 254, "summonerId": 310011, "puuid": "puuid-jg", "gameName": "PunchFirst", "selectedPosition": "JUNGLE" },
+      { "championId": 103, "summonerId": 310001, "puuid": "puuid-me", "gameName": "Player", "selectedPosition": "MIDDLE" },
+      { "championId": 222, "summonerId": 310013, "puuid": "puuid-adc", "gameName": "PowPow", "selectedPosition": "BOTTOM" },
+      { "championId": 412, "summonerId": 310014, "puuid": "puuid-sup", "gameName": "LanternBot", "selectedPosition": "UTILITY" }
+    ],
+    "teamTwo": [
+      { "championId": 122, "summonerId": 320020, "puuid": "puuid-e1", "gameName": "DunkCity", "selectedPosition": "TOP" },
+      { "championId": 64, "summonerId": 320021, "puuid": "puuid-e2", "gameName": "KickFlip", "selectedPosition": "JUNGLE" },
+      { "championId": 134, "summonerId": 320022, "puuid": "puuid-e3", "gameName": "BallsOut", "selectedPosition": "MIDDLE" },
+      { "championId": 51, "summonerId": 320023, "puuid": "puuid-e4", "gameName": "HatLady", "selectedPosition": "BOTTOM" },
+      { "championId": 89, "summonerId": 320024, "puuid": "puuid-e5", "gameName": "SunUp", "selectedPosition": "UTILITY" }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "champion",
+  "format": "standAloneComplex",
+  "version": "fixture",
+  "data": {
+    "Aatrox": { "key": "266", "id": "Aatrox", "name": "Aatrox", "title": "the Darkin Blade", "tags": ["Fighter", "Tank"] },
+    "Ahri": { "key": "103", "id": "Ahri", "name": "Ahri", "title": "the Nine-Tailed Fox", "tags": ["Mage", "Assassin"] },
+    "Malphite": { "key": "54", "id": "Malphite", "name": "Malphite", "title": "Shard of the Monolith", "tags": ["Tank", "Fighter"] },
+    "Vi": { "key": "254", "id": "Vi", "name": "Vi", "title": "the Piltover Enforcer", "tags": ["Fighter", "Assassin"] },
+    "Jinx": { "key": "222", "id": "Jinx", "name": "Jinx", "title": "the Loose Cannon", "tags": ["Marksman"] },
+    "Thresh": { "key": "412", "id": "Thresh", "name": "Thresh", "title": "the Chain Warden", "tags": ["Support", "Fighter"] },
+    "Darius": { "key": "122", "id": "Darius", "name": "Darius", "title": "the Hand of Noxus", "tags": ["Fighter", "Tank"] },
+    "LeeSin": { "key": "64", "id": "LeeSin", "name": "Lee Sin", "title": "the Blind Monk", "tags": ["Fighter", "Assassin"] },
+    "Syndra": { "key": "134", "id": "Syndra", "name": "Syndra", "title": "the Dark Sovereign", "tags": ["Mage"] },
+    "Caitlyn": { "key": "51", "id": "Caitlyn", "name": "Caitlyn", "title": "the Sheriff of Piltover", "tags": ["Marksman"] },
+    "Leona": { "key": "89", "id": "Leona", "name": "Leona", "title": "the Radiant Dawn", "tags": ["Tank", "Support"] },
+    "Zed": { "key": "238", "id": "Zed", "name": "Zed", "title": "the Master of Shadows", "tags": ["Assassin"] },
+    "Yasuo": { "key": "157", "id": "Yasuo", "name": "Yasuo", "title": "the Unforgiven", "tags": ["Fighter", "Assassin"] },
+    "Blitzcrank": { "key": "53", "id": "Blitzcrank", "name": "Blitzcrank", "title": "the Great Steam Golem", "tags": ["Tank", "Support"] },
+    "Morgana": { "key": "25", "id": "Morgana", "name": "Morgana", "title": "the Fallen", "tags": ["Support", "Mage"] },
+    "Shaco": { "key": "35", "id": "Shaco", "name": "Shaco", "title": "the Demon Jester", "tags": ["Assassin"] },
+    "Teemo": { "key": "17", "id": "Teemo", "name": "Teemo", "title": "the Swift Scout", "tags": ["Marksman", "Assassin"] }
+  }
+}

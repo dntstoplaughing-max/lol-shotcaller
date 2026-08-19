@@ -1,0 +1,30 @@
+{
+  "name": "lol-shotcaller",
+  "version": "0.1.0",
+  "private": true,
+  "description": "League of Legends lobby scanner + AI game-plan overlay. Reads champ select and the loading screen via the local LCU API, streams a Claude-generated game plan into an always-on-top overlay.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "start": "npm run build && electron .",
+    "start:mock": "npm run build && electron . --mock --dry-run",
+    "demo": "npm run build && electron . --demo",
+    "simulate": "npm run build && node dist/simulate.js",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
+    "dotenv": "^17.4.2",
+    "league-connect": "6.0.0-rc13"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "electron": "^43.0.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.0"
+  }
+}

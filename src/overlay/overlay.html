@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'" />
+    <title>Shotcaller</title>
+    <link rel="stylesheet" href="overlay.css" />
+  </head>
+  <body>
+    <div id="root">
+      <header id="bar">
+        <span id="brand">SHOTCALLER</span>
+        <span id="clock" hidden>0:00</span>
+        <span id="pill" class="waiting">waiting</span>
+      </header>
+      <div id="status">Starting…</div>
+      <div id="teams" hidden>
+        <div id="allies" class="chips"></div>
+        <div id="vsrow" hidden><span id="vs">vs</span></div>
+        <div id="enemies" class="chips"></div>
+      </div>
+      <div id="bans" hidden></div>
+      <main id="plan"></main>
+      <footer id="hint">Ctrl+Alt+O — mouse on/off · Ctrl+Alt+K — compact</footer>
+    </div>
+    <script src="overlay.js"></script>
+  </body>
+</html>
