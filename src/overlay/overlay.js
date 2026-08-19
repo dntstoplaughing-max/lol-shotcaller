@@ -23,7 +23,7 @@
   let activeSection = null; // set by the game clock
 
   // Sections that stay visible in compact (collapsed) mode.
-  const PINNED = new Set(["WIN CONDITION", "COMP IDENTITY"]);
+  const PINNED = new Set(["WIN CONDITION", "COMP IDENTITY", "FOCUS"]);
 
   function setStatus(state, text) {
     pill.className = state;
@@ -240,6 +240,10 @@
     "",
     "## IF BEHIND",
     "Stall — clear waves, give what you can't contest, and wait for one Malphite ult on three: this comp wins from even at 30+.",
+    "",
+    "## FOCUS",
+    "- Your profile leak: chasing resets into fog. Syndra + Leona punish it hardest — after every pick, count enemies on the map before you touch another wave.",
+    "- Loss-streak rule applies: if this goes 0/3 by 14, play weak-side and let Malphite carry engage — do not force plays to fix the scoreboard.",
   ].join("\n");
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

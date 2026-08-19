@@ -11,7 +11,9 @@
 //   effort means less pre-answer reasoning latency. Raise SHOTCALLER_EFFORT
 //   if you would rather trade seconds for depth.
 
+import * as path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
+import { loadCoachProfile, profilePromptBlock } from "../coach/profile";
 import type { Planner, PlanInput } from "../types";
 import { buildStage1Message, buildStage2Message, RUBRIC } from "./prompt";
 
@@ -26,6 +28,7 @@ export class ClaudePlanner implements Planner {
   private readonly client: Anthropic;
   private readonly model: string;
   private readonly effort: "low" | "medium" | "high";
+  private readonly profileBlock: string | null;
 
   constructor() {
     this.client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
@@ -33,6 +36,19 @@ export class ClaudePlanner implements Planner {
     const effort = process.env.SHOTCALLER_EFFORT;
     this.effort =
       effort === "medium" || effort === "high" ? effort : "low";
+
+    // Personal coaching profile (see coach/README in the repo). Lives in the
+    // user message, so it never invalidates the cached system rubric.
+    const profilePath =
+      process.env.SHOTCALLER_PROFILE ||
+      path.resolve(process.cwd(), "coach/profile.json");
+    const profile = loadCoachProfile(profilePath);
+    this.profileBlock = profile ? profilePromptBlock(profile) : null;
+    if (profile) {
+      console.log(
+        `[planner] coach profile loaded (${profile.focusAreas.length} focus areas) from ${profilePath}`,
+      );
+    }
   }
 
   allyBrief(
@@ -40,7 +56,12 @@ export class ClaudePlanner implements Planner {
     onToken: (text: string) => void,
     signal: AbortSignal,
   ): Promise<string> {
-    return this.run(buildStage1Message(input), 3000, onToken, signal);
+    return this.run(
+      buildStage1Message(input, this.profileBlock),
+      3000,
+      onToken,
+      signal,
+    );
   }
 
   fullPlan(
@@ -50,7 +71,7 @@ export class ClaudePlanner implements Planner {
     signal: AbortSignal,
   ): Promise<string> {
     return this.run(
-      buildStage2Message(input, allyBrief),
+      buildStage2Message(input, allyBrief, this.profileBlock),
       envInt("SHOTCALLER_MAX_PLAN_TOKENS", 4000),
       onToken,
       signal,

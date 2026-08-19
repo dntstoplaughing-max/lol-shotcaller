@@ -77,6 +77,27 @@ Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` in `.env`
   real planner calls and iterate on the prompt.
 - `npm test` / `npm run typecheck` — unit tests and types.
 
+## Personal coaching profile
+
+Shotcaller is not a generic tips app: it coaches **against your actual
+leaks**. `coach/profile.json` holds a diagnosis of the player's long-term
+tendencies (produced by a multi-agent analysis of their public ranked
+history — the readable version lives in `coach/diagnosis.md`). When the file
+exists:
+
+- every plan section is steered by the profile's standing *plan directives*
+  (e.g. how to plan "if behind" for a player who historically forces plays
+  when tilted), and
+- stage-2 plans gain a final **`## FOCUS`** section — the 2–3 profile leaks
+  *this* matchup is most likely to trigger, each tied to a concrete in-game
+  moment. FOCUS stays pinned in the overlay's compact mode.
+
+The profile lives in the user message (not the cached rubric), so editing it
+never costs cache latency. Point `SHOTCALLER_PROFILE` at a different file to
+swap profiles. Delete the file to fall back to generic coaching. Regenerate
+it after a meaningful number of new games — it describes the player, not the
+patch.
+
 ## Is this allowed?
 
 Yes — this is the same integration surface the big companion apps

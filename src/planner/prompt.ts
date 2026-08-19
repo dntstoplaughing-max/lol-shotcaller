@@ -56,7 +56,13 @@ Sections, in order:
 ## LATE GAME — 2 bullets for 25+ minutes: fight discipline, death-timer risk, closing.
 ## IF BEHIND — 1-2 lines: the plan B when the primary win condition has failed.
 
-If the enemy roster is missing a champion name, plan around the unknowns without comment. If the player's own role or champion is not marked, infer the most likely one from the roster and proceed — never ask questions. The plan is read under time pressure: front-load the most game-deciding sentence of each section.`;
+If the enemy roster is missing a champion name, plan around the unknowns without comment. If the player's own role or champion is not marked, infer the most likely one from the roster and proceed — never ask questions. The plan is read under time pressure: front-load the most game-deciding sentence of each section.
+
+## Personalization
+
+The user message may include a PLAYER PROFILE block: this player's verified long-term tendencies and standing plan directives, produced from their actual ranked history. When present, it outranks generic advice — weave its plan directives into whichever sections they touch, and end the Stage 2 plan with ONE extra section:
+## FOCUS — max 3 bullets. Name the specific profile leaks THIS matchup is most likely to trigger, each anchored to a concrete in-game moment ("when X happens, do Y"), never a generic reminder. Choose the leaks by collision with this game's comps (e.g. a "chases kills through fog" leak matters more against a pick comp). In Stage 1, let the profile shape YOUR JOB and PLAN SKETCH but do not emit a FOCUS section yet.
+When no PLAYER PROFILE block is present, omit the FOCUS section entirely and coach generically.`;
 
 const POSITION_DISPLAY: Record<string, string> = {
   top: "Top",
@@ -72,7 +78,10 @@ function slotLine(slot: PlayerSlot): string {
   return `- ${slot.championName || "(not yet known)"} (${pos})${me}`;
 }
 
-export function buildStage1Message(input: PlanInput): string {
+export function buildStage1Message(
+  input: PlanInput,
+  profileBlock?: string | null,
+): string {
   const lines: string[] = [];
   lines.push(`Stage 1 — ALLY BRIEF. Queue: ${input.queue}.`);
   lines.push(`Enemy picks are hidden until loading screen. Our team:`);
@@ -85,6 +94,10 @@ export function buildStage1Message(input: PlanInput): string {
       `The player is ${input.me.championName} (${POSITION_DISPLAY[input.me.position] ?? "?"}).`,
     );
   }
+  if (profileBlock) {
+    lines.push(``);
+    lines.push(profileBlock);
+  }
   lines.push(`Produce the Stage 1 sections now.`);
   return lines.join("\n");
 }
@@ -92,6 +105,7 @@ export function buildStage1Message(input: PlanInput): string {
 export function buildStage2Message(
   input: PlanInput,
   allyBrief: string | null,
+  profileBlock?: string | null,
 ): string {
   const lines: string[] = [];
   lines.push(`Stage 2 — FULL PLAN. Queue: ${input.queue}.`);
@@ -113,6 +127,10 @@ export function buildStage2Message(
       `Your earlier ally-side analysis (revise freely now that the enemy comp is known):`,
     );
     lines.push(allyBrief);
+  }
+  if (profileBlock) {
+    lines.push(``);
+    lines.push(profileBlock);
   }
   lines.push(``);
   lines.push(`Produce the Stage 2 sections now.`);
