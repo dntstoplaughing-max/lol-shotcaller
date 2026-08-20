@@ -234,13 +234,21 @@
 
   // ------------------------------------------------------------------ wiring
 
-  if (window.shotcaller) {
+  // Demo is decided by the ?demo=1 query, NOT by bridge absence: inside
+  // Electron the preload bridge always exists, even under --demo, so a
+  // bridge-based check leaves the demo stuck on "Starting…" forever.
+  const isDemo = new URLSearchParams(location.search).has("demo");
+
+  if (window.shotcaller && !isDemo) {
     window.shotcaller.onEvent(handleEvent);
     window.shotcaller.onUi(handleUi);
     return;
   }
 
-  // No bridge: we're in demo mode (electron --demo, or a plain browser).
+  // Demo mode (electron --demo, or overlay.html opened in a plain browser).
+  if (window.shotcaller) {
+    window.shotcaller.onUi(handleUi); // hotkeys keep working in the demo
+  }
   document.body.classList.add("demo");
 
   const DEMO_ALLIES = [
