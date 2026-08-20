@@ -30,6 +30,15 @@ const ROSTER_RETRY_MS = 2000;
 const EOG_RETRIES = 8;
 const EOG_RETRY_MS = 2000;
 
+export interface LcuConnectorOptions {
+  /**
+   * Called once per finished game with the raw EOG stats block, after it
+   * parsed as a real game (main.ts archives it). Failures are contained
+   * here — history can never break the gate or the pipeline.
+   */
+  onEogStats?: (raw: unknown, me: CurrentSummoner | null) => void;
+}
+
 export class LcuConnector {
   private credentials: Credentials | null = null;
   private me: CurrentSummoner | null = null;
@@ -39,6 +48,7 @@ export class LcuConnector {
   constructor(
     private readonly sc: Shotcaller,
     private readonly poller: LiveClientPoller,
+    private readonly opts: LcuConnectorOptions = {},
   ) {}
 
   /** Runs forever: (re)connects whenever the League client (re)starts. */
@@ -107,6 +117,11 @@ export class LcuConnector {
       const raw = await this.lcuGet<unknown>("/lol-end-of-game/v1/eog-stats-block");
       const result = raw ? parseEogStats(raw, this.me) : null;
       if (result) {
+        try {
+          this.opts.onEogStats?.(raw, this.me);
+        } catch (err) {
+          console.log(`[history] archive hook failed: ${String(err)}`);
+        }
         this.sc.onGameResult(result);
         return;
       }

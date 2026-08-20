@@ -140,6 +140,9 @@ quietly, in the overlay footer area, and only when nothing is happening
   profile is ~30 games old, notes that a regeneration is due (the profile
   describes *you*, and you change). Regenerating resets the count
   automatically.
+- **Post-game archive** — every finished game's end-of-game stats are
+  saved to `coach/history/games.jsonl` on their own (see below), so the
+  evidence for the next profile regeneration accumulates while you play.
 - **Champion data** — already zero-touch: re-synced per patch from Data
   Dragon, cached on disk, tolerant of being offline.
 
@@ -175,6 +178,24 @@ swap profiles. Delete the file to fall back to generic coaching. Regenerate
 it after a meaningful number of new games — it describes the player, not the
 patch. (You don't have to count: Shotcaller tallies finished games against
 the profile's `generatedAt` and shows a quiet note once it hits ~30.)
+
+### Post-game archive
+
+Shotcaller already reads the end-of-game stats block for the session gate —
+so it archives it too. Every finished game appends one line to
+`coach/history/games.jsonl` (git-ignored):
+
+- the **raw EOG stats block, untouched** — the payload the client actually
+  sent, so a future profile regeneration can recompute any number from
+  ground truth instead of scraping op.gg, and
+- a small derived header for quick reading: win/loss, K/D/A, champion,
+  kill participation, control wards bought, cs, vision score, gold.
+
+All queues are archived (normals matter for tilt evidence), duplicates are
+dropped by `gameId` (reconnecting on the end-of-game screen doesn't
+double-count), and only games Shotcaller was running for are captured —
+op.gg still covers gaps. Move it with `SHOTCALLER_HISTORY=<path>`, disable
+with `SHOTCALLER_HISTORY=off`.
 
 ### Session gate & pick hints
 

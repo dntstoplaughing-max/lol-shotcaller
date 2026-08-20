@@ -16,6 +16,11 @@ import {
   globalShortcut,
   screen,
 } from "electron";
+import {
+  appendGameRecord,
+  buildGameRecord,
+  describeRecord,
+} from "./coach/history";
 import { loadCoachProfile } from "./coach/profile";
 import { ensureChampMap } from "./data/ddragon";
 import { LcuConnector } from "./lcu/connector";
@@ -46,6 +51,13 @@ const BOOST_DRY = flags.has("--boost-dry-run");
 // Session stop-loss gate and champ-select pick hints (both default on).
 const GATE_ENABLED = process.env.SHOTCALLER_GATE !== "off";
 const HINTS_ENABLED = process.env.SHOTCALLER_HINTS !== "off";
+// Post-game archive: raw EOG stats per finished game, appended as JSONL —
+// the ground truth future profile regenerations read instead of scrapes.
+const HISTORY_PATH = (() => {
+  const raw = process.env.SHOTCALLER_HISTORY;
+  if (raw === "off") return null;
+  return path.resolve(process.cwd(), raw || "coach/history/games.jsonl");
+})();
 
 const OVERLAY_WIDTH = 400;
 const OVERLAY_HEIGHT = 640;
@@ -281,7 +293,28 @@ async function startPipeline(win: BrowserWindow): Promise<void> {
     await runMockSession(sc, { fast: false });
   } else {
     if (GAME_MODE) await triggerGameMode();
-    await new LcuConnector(sc, poller).start();
+    await new LcuConnector(sc, poller, {
+      onEogStats: (rawBlock, me) => archiveGame(rawBlock, me),
+    }).start();
+  }
+}
+
+/** Append a finished game's raw EOG block (plus a derived header) to the
+ *  local history. Best-effort by design: a full disk or locked file costs
+ *  one archive line, never the gate or the pipeline. */
+function archiveGame(
+  rawBlock: unknown,
+  me: Parameters<typeof buildGameRecord>[1],
+): void {
+  if (!HISTORY_PATH) return;
+  try {
+    const record = buildGameRecord(rawBlock, me, new Date().toISOString());
+    if (!record) return;
+    if (appendGameRecord(HISTORY_PATH, record) === "appended") {
+      console.log(`[history] ${describeRecord(record)}`);
+    }
+  } catch (err) {
+    console.log(`[history] archive failed: ${String(err)}`);
   }
 }
 
