@@ -31,13 +31,14 @@ src/
   system/
     boost.ts             game-mode kill list: planBoost (pure) + taskkill exec; NEVER_KILL guard
     league.ts            Riot Client discovery + League auto-launch
+    housekeeping.ts      pure zero-upkeep logic: position clamp, games-since-profile counter, nudge texts
   overlay/               plain HTML/CSS/JS renderer, no build step; ?demo=1 self-drives
   simulate.ts            headless end-to-end smoke (runs in CI)
 coach/
   profile.json           machine profile the planner injects (leaks, directives, pool plan)
   diagnosis.md           the full human-readable hardstuck diagnosis
 fixtures/                recorded LCU shapes + ddragon slim + EOG block (tests/mock)
-test/                    42 vitest tests: state timing, prompts, gate, boost, ddragon, coach
+test/                    58 vitest tests: state timing, prompts, gate, boost, ddragon, coach, housekeeping
 scripts/install-shortcuts.ps1   Desktop/Startup shortcuts (npm run shortcut[:startup])
 boost.json               user-reviewed kill list (enabled:false until owner opts in)
 .github/workflows/ci.yml typecheck + tests + build + simulate (no Electron binary)
@@ -117,6 +118,15 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
   and the wrong product (restart-to-override is the deliberate pause).
 - **Auto-compact at 1:30** rather than trimming plan content (owner liked
   the content, wanted less on screen mid-game).
+- **Zero-thought ops (#4)**: the desktop icon hands game mode to an
+  already-running instance (second-instance + lock additionalData — before
+  this, a second launch silently died and boost/launch never ran); overlay
+  position persists with an on-screen clamp; update + profile-age nudges
+  are passive overlay notes, hidden while planning/live. Updates are never
+  auto-applied (a half-applied pull pre-queue is the worst timing) and the
+  profile is never auto-edited — the nudge points at the regen protocol
+  above. boost.json is re-read per trigger; mock replays never bump the
+  games counter.
 - Repo layout: overlay is buildless on purpose; CJS output for
   league-connect interop; fixtures + mock + simulate exist so everything
   verifies without League or an API key (CI does exactly that).
@@ -138,6 +148,8 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
    and pick hints (merged 2026-08-20).
 2. **#2** demo-mode fix: demo keyed on `?demo=1`, not bridge absence (merged).
 3. **#3** mouse-safety overhaul + auto-compact + `ms=` logging + these docs.
+4. **#4** zero-thought ops: second-instance game-mode handoff, overlay
+   position memory, update + profile-age nudges, `npm run update`.
 
 ## Verifying changes
 
@@ -157,5 +169,5 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
   refresh from ground truth instead of scrapes (also enables a real
   "bottom-3 of lobby" gate rule, which scrapes can't compute).
 - Riot Web API scouting of the other nine players (dev-key friction noted).
-- Overlay position persistence; installer packaging (electron-builder);
-  optional patch-notes feed into the rubric.
+- Installer packaging (electron-builder); optional patch-notes feed into
+  the rubric.
