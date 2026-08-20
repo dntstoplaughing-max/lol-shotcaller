@@ -42,9 +42,19 @@ const OVERLAY_HEIGHT = 640;
 
 const TOGGLE_MOUSE_HOTKEY = process.env.SHOTCALLER_HOTKEY_MOUSE ?? "Control+Alt+O";
 const COLLAPSE_HOTKEY = process.env.SHOTCALLER_HOTKEY_COLLAPSE ?? "Control+Alt+K";
+const PANIC_QUIT_HOTKEY = process.env.SHOTCALLER_HOTKEY_QUIT ?? "Control+Alt+Shift+Q";
+
+// Dead-man switch: interactive mode reverts to click-through on its own, so
+// an accidental toggle mid-fight can never leave the overlay eating clicks.
+const INTERACTIVE_TIMEOUT_MS = (() => {
+  const raw = Number(process.env.SHOTCALLER_INTERACTIVE_TIMEOUT_S);
+  if (Number.isFinite(raw) && raw >= 0) return Math.floor(raw) * 1000;
+  return 20_000;
+})();
 
 let overlay: BrowserWindow | null = null;
 let interactive = false;
+let interactiveTimer: NodeJS.Timeout | null = null;
 
 function createOverlay(): BrowserWindow {
   const { workArea } = screen.getPrimaryDisplay();
@@ -59,6 +69,11 @@ function createOverlay(): BrowserWindow {
     movable: true,
     skipTaskbar: true,
     alwaysOnTop: true,
+    // Never take keyboard focus (clicks/scroll still work when interactive),
+    // and register as a tool window so Alt+Tab can't land on the overlay —
+    // the game keeps focus no matter what.
+    focusable: false,
+    type: "toolbar",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -77,9 +92,25 @@ function createOverlay(): BrowserWindow {
 function setInteractive(win: BrowserWindow, value: boolean): void {
   interactive = value;
   // Click-through when not interactive, so it never eats a game click.
-  win.setIgnoreMouseEvents(!value, { forward: true });
-  if (value) win.focus();
+  //
+  // Deliberately NO `{ forward: true }` and NO focus() here:
+  // - forward:true installs a system-wide low-level mouse hook on Windows;
+  //   when a running game starves this process, that hook stalls and the
+  //   OS cursor freezes machine-wide (first-run incident). We don't need
+  //   hover events, so no hook, ever.
+  // - The overlay must never steal focus from the game.
+  win.setIgnoreMouseEvents(!value);
   win.webContents.send("sc-ui", { type: "interactive", value });
+
+  if (interactiveTimer) {
+    clearTimeout(interactiveTimer);
+    interactiveTimer = null;
+  }
+  if (value && INTERACTIVE_TIMEOUT_MS > 0) {
+    interactiveTimer = setTimeout(() => {
+      if (overlay && !overlay.isDestroyed()) setInteractive(overlay, false);
+    }, INTERACTIVE_TIMEOUT_MS);
+  }
 }
 
 async function startPipeline(win: BrowserWindow): Promise<void> {
@@ -181,6 +212,8 @@ if (!gotLock) {
     globalShortcut.register(COLLAPSE_HOTKEY, () => {
       overlay?.webContents.send("sc-ui", { type: "collapse-toggle" });
     });
+    // Panic button: kill the whole app (and any mouse state with it).
+    globalShortcut.register(PANIC_QUIT_HOTKEY, () => app.quit());
   });
 
   app.on("will-quit", () => globalShortcut.unregisterAll());
