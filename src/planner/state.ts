@@ -11,18 +11,30 @@
 //   InProgress   — live game. The clock drives which plan section is "now".
 
 import { EventEmitter } from "node:events";
+import { SessionGate, type GateStatus } from "../coach/gate";
+import type { CoachProfile } from "../coach/profile";
 import type {
   ChampMap,
   ChampSelectSession,
   CurrentSummoner,
   GameflowPlayer,
   GameflowSession,
+  GameResult,
   Planner,
   PlanInput,
   PlayerSlot,
   ShotcallerEvent,
   StatusState,
 } from "../types";
+
+export interface ShotcallerOptions {
+  /** Coach profile, used for champ-select pick hints (pool plan). */
+  profile?: CoachProfile | null;
+  /** Champ-select pick hints on/off (default on). */
+  hints?: boolean;
+  /** Session stop-loss gate on/off (default on). */
+  gate?: boolean;
+}
 
 const POSITION_LABELS: Record<string, string> = {
   top: "top",
@@ -41,13 +53,21 @@ export class Shotcaller extends EventEmitter {
   private allyBriefText: string | null = null;
   private lastLobby: { allies: PlayerSlot[]; bans: string[] } | null = null;
   private currentAbort: AbortController | null = null;
+  private me: CurrentSummoner | null = null;
+  private readonly profile: CoachProfile | null;
+  private readonly hintsEnabled: boolean;
+  private readonly gate: SessionGate | null;
+  private lastHint: string | null = null;
 
   constructor(
     private readonly champs: ChampMap,
     private readonly planner: Planner,
-    private me: CurrentSummoner | null = null,
+    options: ShotcallerOptions = {},
   ) {
     super();
+    this.profile = options.profile ?? null;
+    this.hintsEnabled = options.hints !== false;
+    this.gate = options.gate !== false ? new SessionGate() : null;
   }
 
   override emit(event: "event", payload: ShotcallerEvent): boolean {
@@ -84,6 +104,7 @@ export class Shotcaller extends EventEmitter {
       case "ChampSelect":
         this.resetForNewGame();
         this.status("champselect", "Champ select — reading picks and bans…");
+        this.emitGate(); // re-surface a closed/cooldown gate on a new queue
         break;
       case "GameStart":
         this.status("planning", "Loading screen — enemy comp incoming…");
@@ -126,10 +147,12 @@ export class Shotcaller extends EventEmitter {
       position: POSITION_LABELS[cell.assignedPosition ?? ""] ?? "",
       isMe: cell.cellId === localCell,
     }));
-    const bans = this.collectBans(session);
+    const banIds = this.collectBanIds(session);
+    const bans = banIds.map((id) => this.championName(id));
 
     this.lastLobby = { allies, bans };
     this.emit("event", { kind: "lobby", allies, bans });
+    this.updatePickHint(session, allies, banIds);
 
     const allLocked = myTeam.every((cell) => cell.championId > 0);
     const finalizing = session.timer?.phase === "FINALIZATION";
@@ -145,7 +168,7 @@ export class Shotcaller extends EventEmitter {
     }
   }
 
-  private collectBans(session: ChampSelectSession): string[] {
+  private collectBanIds(session: ChampSelectSession): number[] {
     const ids = new Set<number>();
     for (const id of session.bans?.myTeamBans ?? []) ids.add(id);
     for (const id of session.bans?.theirTeamBans ?? []) ids.add(id);
@@ -157,7 +180,96 @@ export class Shotcaller extends EventEmitter {
         }
       }
     }
-    return [...ids].filter((id) => id > 0).map((id) => this.championName(id));
+    return [...ids].filter((id) => id > 0);
+  }
+
+  // -------------------------------------------------------------- pick hints
+
+  private championIdByName(name: string): number | null {
+    const wanted = name.toLowerCase();
+    for (const [id, info] of this.champs) {
+      if (info.name.toLowerCase() === wanted) return id;
+    }
+    return null;
+  }
+
+  /**
+   * Live champ-select advice from the profile's pool plan: is the main
+   * available, and does the comp taking shape need the stabilizer instead?
+   * Frontline detection is a heuristic (Data Dragon "Tank" tag).
+   */
+  private computePickHint(
+    session: ChampSelectSession,
+    allies: PlayerSlot[],
+    banIds: number[],
+  ): string | null {
+    const me = allies.find((a) => a.isMe);
+    if (!me || me.championId > 0) return null; // already locked — hint is moot
+
+    const mainName = this.profile?.pool?.main;
+    const stabName = this.profile?.pool?.stabilizer;
+    const mainId = mainName ? this.championIdByName(mainName) : null;
+
+    if (mainId) {
+      const lockStab = stabName ? `lock ${stabName}` : "pick a frontline jungler";
+      if (banIds.includes(mainId)) {
+        return `${mainName} is banned — stabilizer game: ${lockStab}.`;
+      }
+      if (allies.some((a) => !a.isMe && a.championId === mainId)) {
+        return `${mainName} is taken — stabilizer game: ${lockStab}.`;
+      }
+    }
+
+    const locked = allies.filter((a) => !a.isMe && a.championId > 0);
+    if (locked.length < 2) return null; // too early to read the comp
+    const hasFrontline = locked.some((a) =>
+      this.champs.get(a.championId)?.tags?.includes("Tank"),
+    );
+    if (!hasFrontline) {
+      return stabName
+        ? `No frontline locked yet — lean ${stabName}.`
+        : "No frontline locked yet — consider a tank/engage pick.";
+    }
+    return mainName ? `Frontline covered — ${mainName} game.` : null;
+  }
+
+  private updatePickHint(
+    session: ChampSelectSession,
+    allies: PlayerSlot[],
+    banIds: number[],
+  ): void {
+    if (!this.hintsEnabled) return;
+    const hint = this.computePickHint(session, allies, banIds);
+    if (hint !== this.lastHint) {
+      this.lastHint = hint;
+      this.emit("event", { kind: "pick-hint", text: hint });
+    }
+  }
+
+  // ------------------------------------------------------------ session gate
+
+  /** Feed a finished game's outcome into the stop-loss gate. */
+  onGameResult(result: GameResult): void {
+    if (!this.gate) return;
+    this.gate.record(result);
+    this.emitGate();
+  }
+
+  private emitGate(): void {
+    if (!this.gate) return;
+    const status: GateStatus = this.gate.current();
+    if (status.state === "open") {
+      this.emit("event", { kind: "gate", state: "open" });
+    } else if (status.state === "cooldown") {
+      this.emit("event", {
+        kind: "gate",
+        state: "cooldown",
+        reason: status.reason,
+        untilTs: status.untilTs,
+      });
+    } else {
+      this.emit("event", { kind: "gate", state: "closed", reason: status.reason });
+    }
   }
 
   // -------------------------------------------------------------- game start
@@ -310,6 +422,7 @@ export class Shotcaller extends EventEmitter {
     this.stage2Fired = false;
     this.allyBriefText = null;
     this.lastLobby = null;
+    this.lastHint = null;
     this.emit("event", { kind: "reset" });
   }
 }

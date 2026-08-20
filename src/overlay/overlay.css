@@ -109,6 +109,46 @@ body.interactive #bar {
   font-size: 11.5px;
 }
 
+/* Session gate: the stop-loss rule, rendered loud. */
+#gate {
+  margin: 6px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--danger);
+  border-left-width: 4px;
+  border-radius: 6px;
+  background: rgba(224, 106, 90, 0.12);
+}
+
+#gatetitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--danger);
+  margin-bottom: 3px;
+}
+
+#gatereason {
+  color: var(--text);
+}
+
+#gatetimer {
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--danger);
+}
+
+/* Champ-select pick hint from the pool plan. */
+#pickhint {
+  margin: 6px 0 2px;
+  padding: 6px 9px;
+  border-left: 3px solid var(--teal);
+  border-radius: 4px;
+  background: rgba(10, 200, 185, 0.08);
+  color: var(--teal);
+  font-weight: 600;
+}
+
 #teams {
   padding: 4px 0 2px;
 }

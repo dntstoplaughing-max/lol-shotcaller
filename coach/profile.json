@@ -1,6 +1,11 @@
 {
   "riotId": "NoRights4Laners#512",
   "region": "NA",
+  "pool": {
+    "main": "Qiyana",
+    "stabilizer": "Zac",
+    "_note": "Agreed 2026-08-20: Qiyana by default; Zac when the team lacks frontline or Qiyana is banned/taken. Zac gets a pre-committed 15-game ranked block judged on process stats (KP, deaths, objectives), never on its W-L."
+  },
   "rank": "Silver 3, 10-24 LP depending on snapshot (season peak Silver 3 86 LP; career peak Gold 3, 2023 S2)",
   "sampleSize": "62 ranked solo games S2026 (60 in the champion table), 10-game detailed recent window, plus 10 recorded season finishes 2020-2026; per-champion and matchup splits are n<=9 and treated as noise",
   "summary": "Six years of season finishes put this player at a stable mid-Silver equilibrium, and this season's 48% over 62 games is statistically indistinguishable from maintaining it \u2014 the problem is habits, not luck or mechanics. Farming and early game are strong; the LP leaks are low kill participation (45%), zero control wards, deaths on shutdown-carrying assassins, and tilt-queueing that erased a month of LP in two days.",

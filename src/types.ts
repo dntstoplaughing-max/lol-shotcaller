@@ -43,7 +43,23 @@ export type ShotcallerEvent =
   | { kind: "plan-done"; stage: 1 | 2; full: string }
   | { kind: "plan-error"; message: string }
   | { kind: "clock"; gameTimeSec: number }
+  | { kind: "pick-hint"; text: string | null }
+  | {
+      kind: "gate";
+      state: "open" | "cooldown" | "closed";
+      reason?: string;
+      untilTs?: number;
+    }
   | { kind: "reset" };
+
+/** Outcome of a finished game, parsed from the LCU end-of-game stats. */
+export interface GameResult {
+  ranked: boolean;
+  win: boolean;
+  kills: number;
+  deaths: number;
+  assists: number;
+}
 
 export type StatusState =
   | "waiting"

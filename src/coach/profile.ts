@@ -29,6 +29,12 @@ export interface CoachProfile {
   focusAreas: FocusArea[];
   /** One-line note per pool champion. */
   championNotes?: Record<string, string>;
+  /**
+   * The agreed ranked pool plan: default to main; switch to stabilizer when
+   * the comp needs frontline or the main is unavailable. Drives champ-select
+   * pick hints and is stated to the planner.
+   */
+  pool?: { main?: string; stabilizer?: string };
   caveats?: string;
   generatedAt?: string;
 }
@@ -61,6 +67,14 @@ export function profilePromptBlock(profile: CoachProfile): string {
   );
   if (profile.identity) lines.push(`Identity: ${profile.identity}`);
   if (profile.summary) lines.push(`Summary: ${profile.summary}`);
+  if (profile.pool?.main) {
+    const stab = profile.pool.stabilizer
+      ? `; switches to ${profile.pool.stabilizer} when the team lacks frontline or the main is unavailable`
+      : "";
+    lines.push(
+      `Ranked pool plan: mains ${profile.pool.main}${stab}. Coach the chosen champion accordingly.`,
+    );
+  }
   profile.focusAreas.forEach((f, i) => {
     lines.push(`${i + 1}. Leak: ${f.leak}`);
     if (f.inGameCue) lines.push(`   Fires when: ${f.inGameCue}`);

@@ -21,6 +21,7 @@
   let planBuffer = "";
   let renderQueued = false;
   let activeSection = null; // set by the game clock
+  let gateInterval = null; // countdown ticker for cooldown gates
 
   // Sections that stay visible in compact (collapsed) mode.
   const PINNED = new Set(["WIN CONDITION", "COMP IDENTITY", "FOCUS"]);
@@ -98,6 +99,45 @@
     );
   }
 
+  function setGate(evt) {
+    const gateEl = el("gate");
+    const timerEl = el("gatetimer");
+    if (gateInterval) {
+      clearInterval(gateInterval);
+      gateInterval = null;
+    }
+    if (evt.state === "open") {
+      gateEl.hidden = true;
+      return;
+    }
+    gateEl.hidden = false;
+    el("gatereason").textContent = evt.reason || "";
+    if (evt.state === "cooldown" && evt.untilTs) {
+      timerEl.hidden = false;
+      const tick = () => {
+        const left = Math.max(0, Math.ceil((evt.untilTs - Date.now()) / 1000));
+        const m = Math.floor(left / 60);
+        const s = String(left % 60).padStart(2, "0");
+        timerEl.textContent = `Gate opens in ${m}:${s}`;
+        if (left <= 0) {
+          clearInterval(gateInterval);
+          gateInterval = null;
+          gateEl.hidden = true;
+        }
+      };
+      tick();
+      gateInterval = setInterval(tick, 1000);
+    } else {
+      timerEl.hidden = true;
+    }
+  }
+
+  function setPickHint(text) {
+    const hintEl = el("pickhint");
+    hintEl.hidden = !text;
+    hintEl.textContent = text || "";
+  }
+
   function setClock(gameTimeSec) {
     const m = Math.floor(gameTimeSec / 60);
     const s = String(Math.floor(gameTimeSec % 60)).padStart(2, "0");
@@ -156,6 +196,12 @@
       case "clock":
         setClock(evt.gameTimeSec);
         break;
+      case "gate":
+        setGate(evt);
+        break;
+      case "pick-hint":
+        setPickHint(evt.text);
+        break;
       case "reset":
         planBuffer = "";
         activeSection = null;
@@ -163,6 +209,9 @@
         teamsEl.hidden = true;
         vsRow.hidden = true;
         bansEl.hidden = true;
+        setPickHint(null);
+        // Gate deliberately NOT cleared here: a closed gate must survive
+        // into the next champ select (the state machine re-emits it there).
         alliesEl.replaceChildren();
         enemiesEl.replaceChildren();
         scheduleRender();
@@ -253,7 +302,9 @@
     teamsEl.hidden = false;
     renderTeam(alliesEl, DEMO_ALLIES, false);
     renderBans(DEMO_BANS);
-    await sleep(500);
+    setPickHint("Frontline covered — Qiyana game.");
+    await sleep(900);
+    setPickHint(null);
     handleEvent({ kind: "matchup", allies: DEMO_ALLIES, enemies: DEMO_ENEMIES });
     handleEvent({ kind: "plan-stage", stage: 2 });
     await sleep(300);

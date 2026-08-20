@@ -130,6 +130,26 @@ swap profiles. Delete the file to fall back to generic coaching. Regenerate
 it after a meaningful number of new games — it describes the player, not the
 patch.
 
+### Session gate & pick hints
+
+Two live enforcers of the profile, both on by default:
+
+- **Session gate** — Shotcaller reads each finished game's result from the
+  LCU end-of-game stats and applies the profile's stop-loss rule: two
+  consecutive ranked losses closes the gate for this app session; any
+  "rough game" (a loss with kills + assists ≤ deaths, any queue) starts a
+  15-minute cooldown with a countdown; a ranked win reopens everything.
+  The gate is a red banner in the overlay — **advisory only, on purpose**:
+  it never touches the queue or declines anything (input automation is
+  against Riot's rules, and the override — restarting the app — is exactly
+  the deliberate pause the rule wants). Disable with `SHOTCALLER_GATE=off`.
+- **Pick hints** — during champ select, the overlay reads the profile's
+  pool plan (`pool.main` / `pool.stabilizer`) against live ally locks and
+  bans: *"Qiyana is banned — stabilizer game: lock Zac"*, *"No frontline
+  locked yet — lean Zac"*, *"Frontline covered — Qiyana game."* Frontline
+  detection is a heuristic (Data Dragon's Tank tag). Disable with
+  `SHOTCALLER_HINTS=off`.
+
 ## Is this allowed?
 
 Yes — this is the same integration surface the big companion apps

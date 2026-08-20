@@ -16,6 +16,7 @@ import {
   type Credentials,
   type LeagueWebSocket,
 } from "league-connect";
+import { parseEogStats } from "./eog";
 import type { Shotcaller } from "../planner/state";
 import type {
   ChampSelectSession,
@@ -26,10 +27,14 @@ import type { LiveClientPoller } from "../liveclient/poller";
 
 const ROSTER_RETRIES = 20;
 const ROSTER_RETRY_MS = 2000;
+const EOG_RETRIES = 8;
+const EOG_RETRY_MS = 2000;
 
 export class LcuConnector {
   private credentials: Credentials | null = null;
+  private me: CurrentSummoner | null = null;
   private pullingRoster = false;
+  private eogHandled = false;
 
   constructor(
     private readonly sc: Shotcaller,
@@ -86,6 +91,29 @@ export class LcuConnector {
     if (["WaitingForStats", "PreEndOfGame", "EndOfGame", "None"].includes(phase)) {
       this.poller.stop();
     }
+    if (phase === "WaitingForStats" || phase === "PreEndOfGame" || phase === "EndOfGame") {
+      void this.pullEndOfGame();
+    }
+    if (["ChampSelect", "Lobby", "Matchmaking", "ReadyCheck"].includes(phase)) {
+      this.eogHandled = false; // next game's stats are fair game again
+    }
+  }
+
+  /** Feed the finished game's result into the session gate. */
+  private async pullEndOfGame(): Promise<void> {
+    if (this.eogHandled) return;
+    this.eogHandled = true;
+    for (let attempt = 0; attempt < EOG_RETRIES; attempt++) {
+      const raw = await this.lcuGet<unknown>("/lol-end-of-game/v1/eog-stats-block");
+      const result = raw ? parseEogStats(raw, this.me) : null;
+      if (result) {
+        this.sc.onGameResult(result);
+        return;
+      }
+      await sleep(EOG_RETRY_MS);
+    }
+    // Stats never materialized (remake, client quirk) — the gate just skips
+    // this game rather than guessing.
   }
 
   /** On (re)connect, jump to wherever the client already is. */
@@ -130,7 +158,10 @@ export class LcuConnector {
     const me = await this.lcuGet<CurrentSummoner>(
       "/lol-summoner/v1/current-summoner",
     );
-    if (me) this.sc.setCurrentSummoner(me);
+    if (me) {
+      this.me = me;
+      this.sc.setCurrentSummoner(me);
+    }
   }
 
   private async lcuGet<T>(url: string): Promise<T | null> {

@@ -19,6 +19,8 @@
     "Blitzcrank": { "key": "53", "id": "Blitzcrank", "name": "Blitzcrank", "title": "the Great Steam Golem", "tags": ["Tank", "Support"] },
     "Morgana": { "key": "25", "id": "Morgana", "name": "Morgana", "title": "the Fallen", "tags": ["Support", "Mage"] },
     "Shaco": { "key": "35", "id": "Shaco", "name": "Shaco", "title": "the Demon Jester", "tags": ["Assassin"] },
-    "Teemo": { "key": "17", "id": "Teemo", "name": "Teemo", "title": "the Swift Scout", "tags": ["Marksman", "Assassin"] }
+    "Teemo": { "key": "17", "id": "Teemo", "name": "Teemo", "title": "the Swift Scout", "tags": ["Marksman", "Assassin"] },
+    "Qiyana": { "key": "246", "id": "Qiyana", "name": "Qiyana", "title": "Empress of the Elements", "tags": ["Assassin", "Fighter"] },
+    "Zac": { "key": "154", "id": "Zac", "name": "Zac", "title": "the Secret Weapon", "tags": ["Tank", "Fighter"] }
   }
 }

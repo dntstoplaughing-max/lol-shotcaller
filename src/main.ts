@@ -14,6 +14,7 @@ import {
   globalShortcut,
   screen,
 } from "electron";
+import { loadCoachProfile } from "./coach/profile";
 import { ensureChampMap } from "./data/ddragon";
 import { LcuConnector } from "./lcu/connector";
 import { runMockSession } from "./lcu/mock";
@@ -32,6 +33,9 @@ const DEMO = flags.has("--demo");
 // desktop shortcut is the whole pre-game routine.
 const GAME_MODE = flags.has("--game-mode") || process.env.SHOTCALLER_GAME_MODE === "1";
 const BOOST_DRY = flags.has("--boost-dry-run");
+// Session stop-loss gate and champ-select pick hints (both default on).
+const GATE_ENABLED = process.env.SHOTCALLER_GATE !== "off";
+const HINTS_ENABLED = process.env.SHOTCALLER_HINTS !== "off";
 
 const OVERLAY_WIDTH = 400;
 const OVERLAY_HEIGHT = 640;
@@ -90,7 +94,15 @@ async function startPipeline(win: BrowserWindow): Promise<void> {
   }
 
   const planner = makePlanner(DRY_RUN);
-  const sc = new Shotcaller(champs, planner);
+  const profile = loadCoachProfile(
+    process.env.SHOTCALLER_PROFILE ||
+      path.resolve(process.cwd(), "coach/profile.json"),
+  );
+  const sc = new Shotcaller(champs, planner, {
+    profile,
+    hints: HINTS_ENABLED,
+    gate: GATE_ENABLED,
+  });
   const poller = new LiveClientPoller((t) => sc.onClock(t));
 
   sc.onEvent((evt) => {

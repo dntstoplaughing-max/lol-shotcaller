@@ -59,6 +59,12 @@ async function main(): Promise<void> {
       case "clock":
         console.log(`[clock] ${Math.floor(evt.gameTimeSec / 60)}:${String(Math.floor(evt.gameTimeSec % 60)).padStart(2, "0")}`);
         break;
+      case "pick-hint":
+        console.log(`[pick-hint] ${evt.text ?? "(cleared)"}`);
+        break;
+      case "gate":
+        console.log(`[gate] ${evt.state}${evt.reason ? ` — ${evt.reason}` : ""}`);
+        break;
       case "reset":
         console.log(`[reset]`);
         break;
@@ -66,6 +72,11 @@ async function main(): Promise<void> {
   });
 
   await runMockSession(sc, { fast: true });
+
+  // Post-game: feed results into the session gate (a rough loss, then a
+  // second ranked loss — the stop-loss should close).
+  sc.onGameResult({ ranked: true, win: false, kills: 4, deaths: 9, assists: 5 });
+  sc.onGameResult({ ranked: true, win: false, kills: 7, deaths: 5, assists: 10 });
 
   // The contract the overlay depends on:
   assert.ok(
@@ -85,6 +96,14 @@ async function main(): Promise<void> {
   for (const header of ["## WIN CONDITION", "## YOUR LANE", "## THREATS", "## IF BEHIND"]) {
     assert.ok(planText.includes(header), `plan contains ${header}`);
   }
+  assert.ok(
+    events.some((e) => e.kind === "gate" && e.state === "cooldown"),
+    "rough loss triggers a cooldown gate",
+  );
+  assert.ok(
+    events.some((e) => e.kind === "gate" && e.state === "closed"),
+    "second ranked loss closes the session gate",
+  );
 
   console.log("\nsimulate: OK — full pipeline produced a structured plan.");
   console.log("\n--- stage 2 plan ---\n");

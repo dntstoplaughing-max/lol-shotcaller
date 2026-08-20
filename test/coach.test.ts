@@ -27,6 +27,7 @@ const profile: CoachProfile = {
     },
   ],
   championNotes: { Qiyana: "1.1M mastery; the comfort pick under pressure." },
+  pool: { main: "Qiyana", stabilizer: "Zac" },
 };
 
 function tmpFile(content: string): string {
@@ -65,6 +66,7 @@ describe("profilePromptBlock", () => {
     expect(block).toContain("loss streaks");
     expect(block).toContain("Plan directive:");
     expect(block).toContain("Qiyana: 1.1M mastery");
+    expect(block).toContain("Ranked pool plan: mains Qiyana; switches to Zac");
   });
 });
 

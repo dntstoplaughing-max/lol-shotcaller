@@ -1,0 +1,25 @@
+{
+  "gameId": 5624190933,
+  "queueId": 420,
+  "queueType": "RANKED_SOLO_5x5",
+  "localPlayer": {
+    "summonerId": 310001,
+    "puuid": "puuid-me",
+    "stats": { "CHAMPIONS_KILLED": 4, "NUM_DEATHS": 9, "ASSISTS": 5, "WIN": 0 }
+  },
+  "teams": [
+    {
+      "teamId": 100,
+      "isWinningTeam": false,
+      "players": [
+        { "summonerId": 310001, "puuid": "puuid-me", "stats": { "CHAMPIONS_KILLED": 4, "NUM_DEATHS": 9, "ASSISTS": 5 } },
+        { "summonerId": 310010, "puuid": "puuid-top" }
+      ]
+    },
+    {
+      "teamId": 200,
+      "isWinningTeam": true,
+      "players": [{ "summonerId": 320022, "puuid": "puuid-e3" }]
+    }
+  ]
+}
