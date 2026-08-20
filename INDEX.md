@@ -23,6 +23,7 @@ src/
   coach/
     profile.ts           CoachProfile type, loader, prompt-block formatter
     gate.ts              SessionGate: 2 ranked L → closed; rough game → 15min cooldown; W reopens
+    history.ts           post-game archive: raw EOG + derived header → coach/history/games.jsonl (JSONL, gameId-deduped)
   lcu/
     connector.ts         league-connect wiring: WS subscriptions, roster/EOG retries, reconnect loop
     eog.ts               defensive parser for /lol-end-of-game/v1/eog-stats-block
@@ -31,13 +32,15 @@ src/
   system/
     boost.ts             game-mode kill list: planBoost (pure) + taskkill exec; NEVER_KILL guard
     league.ts            Riot Client discovery + League auto-launch
+    housekeeping.ts      pure zero-upkeep logic: position clamp, games-since-profile counter, nudge texts
   overlay/               plain HTML/CSS/JS renderer, no build step; ?demo=1 self-drives
   simulate.ts            headless end-to-end smoke (runs in CI)
 coach/
   profile.json           machine profile the planner injects (leaks, directives, pool plan)
   diagnosis.md           the full human-readable hardstuck diagnosis
+  history/games.jsonl    post-game archive (git-ignored; grows as the owner plays)
 fixtures/                recorded LCU shapes + ddragon slim + EOG block (tests/mock)
-test/                    42 vitest tests: state timing, prompts, gate, boost, ddragon, coach
+test/                    66 vitest tests: state timing, prompts, gate, boost, ddragon, coach, housekeeping, history
 scripts/install-shortcuts.ps1   Desktop/Startup shortcuts (npm run shortcut[:startup])
 boost.json               user-reviewed kill list (enabled:false until owner opts in)
 .github/workflows/ci.yml typecheck + tests + build + simulate (no Electron binary)
@@ -54,7 +57,7 @@ League client ──lockfile/WSS──▶ LcuConnector ──▶ Shotcaller (sta
                 ranked until now — this IS the design window) → STAGE 2 full plan;
                 stage 1 aborted if streaming, its partial (≥200 chars) fed forward
    InProgress:  clock poll (5s) → active section highlight; auto-compact at 1:30
-   EndOfGame:   EOG stats → SessionGate → red banner if stop-loss trips
+   EndOfGame:   EOG stats → archive (coach/history) + SessionGate → red banner if stop-loss trips
 Timing: plan first-token ~1-2s into loading screen, complete ~10-15s (30-60s available).
 ```
 
@@ -81,6 +84,13 @@ lacks frontline or Qiyana unavailable; Zac judged on a pre-committed
 15-game block by process stats, never W-L. Gate rules encode leak #4.
 
 ## Regenerating the diagnosis (when: ~30+ new games, or on request)
+
+**Primary source first (since #4): `coach/history/games.jsonl`** on the
+gaming PC — one line per finished game with the raw LCU EOG block plus a
+derived header (win, K/D/A, KP, control wards, cs, vision, gold). Ground
+truth, all queues, no scraping — but only games Shotcaller was running
+for, and no timeline stats (gold@15 etc.). Use the scrapes below to
+backfill gaps and for anything per-minute.
 
 Sources that actually work from an agent environment (2026-08):
 - **op.gg**: server-rendered — profile page + `/champions` `/matches`
@@ -117,6 +127,26 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
   and the wrong product (restart-to-override is the deliberate pause).
 - **Auto-compact at 1:30** rather than trimming plan content (owner liked
   the content, wanted less on screen mid-game).
+- **Zero-thought ops (#4)**: the desktop icon hands game mode to an
+  already-running instance (second-instance + lock additionalData — before
+  this, a second launch silently died and boost/launch never ran); overlay
+  position persists with an on-screen clamp; update + profile-age nudges
+  are passive overlay notes, hidden while planning/live. Updates are never
+  auto-applied (a half-applied pull pre-queue is the worst timing) and the
+  profile is never auto-edited — the nudge points at the regen protocol
+  above. boost.json is re-read per trigger; mock replays never bump the
+  games counter.
+- **Post-game archive (#4)**: the raw EOG block is stored untouched (the
+  payload drifts across client versions and regens recompute every number
+  adversarially — curating fields would silently discard evidence), plus a
+  derived header that omits anything it can't state confidently (KP only
+  when every teammate's kills are present). JSONL append-only, deduped by
+  gameId against the file tail (reconnects on the EOG screen re-read the
+  same block), archives all queues (normals are tilt evidence), skips
+  exactly what parseEogStats rejects, and is best-effort: an archive
+  failure logs and never touches the gate or pipeline. Enables the
+  roadmap's real "bottom-3 of lobby" gate rule later — NOT wired into the
+  gate now; changing the owner's stop-loss triggers needs the owner.
 - Repo layout: overlay is buildless on purpose; CJS output for
   league-connect interop; fixtures + mock + simulate exist so everything
   verifies without League or an API key (CI does exactly that).
@@ -138,6 +168,9 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
    and pick hints (merged 2026-08-20).
 2. **#2** demo-mode fix: demo keyed on `?demo=1`, not bridge absence (merged).
 3. **#3** mouse-safety overhaul + auto-compact + `ms=` logging + these docs.
+4. **#4** zero-thought ops: second-instance game-mode handoff, overlay
+   position memory, update + profile-age nudges, `npm run update`,
+   post-game EOG archive → coach/history/games.jsonl.
 
 ## Verifying changes
 
@@ -153,9 +186,12 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
 
 ## Roadmap (unstarted)
 
-- Post-game stat logging via LCU/EOG → local history → periodic profile
-  refresh from ground truth instead of scrapes (also enables a real
-  "bottom-3 of lobby" gate rule, which scrapes can't compute).
+- Profile refresh consuming coach/history/games.jsonl (the archive ships
+  in #4; the regen protocol above already points at it). The archive also
+  makes a real "bottom-3 of lobby" gate rule computable — needs the owner
+  to agree on the placement metric before wiring it into the gate.
+- Backfill history from the LCU match-history endpoint (games played while
+  Shotcaller was off).
 - Riot Web API scouting of the other nine players (dev-key friction noted).
-- Overlay position persistence; installer packaging (electron-builder);
-  optional patch-notes feed into the rubric.
+- Installer packaging (electron-builder); optional patch-notes feed into
+  the rubric.

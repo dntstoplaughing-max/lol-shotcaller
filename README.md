@@ -72,6 +72,10 @@ The overlay shows the full plan through the loading screen, then
 current section. `Ctrl+Alt+K` re-expands; a manual toggle disables
 auto-compact for that game.
 
+The overlay **remembers where you drag it** and comes back there next
+launch. If your monitor layout changed and that spot no longer exists, it
+snaps back to the default corner instead of stranding itself off-screen.
+
 ### Tuning
 
 | Env var | Default | Notes |
@@ -80,6 +84,7 @@ auto-compact for that game.
 | `SHOTCALLER_MODEL` | `claude-opus-5` | `claude-fable-5` for the strongest reasoning (premium tier, works out of the box incl. refusal fallback); `claude-haiku-4-5` for cheap/fast ~5s plans. The console logs `ms=` per call for A/B comparisons |
 | `SHOTCALLER_EFFORT` | `low` | `low`/`medium`/`high` — reasoning depth vs. latency |
 | `SHOTCALLER_MAX_PLAN_TOKENS` | `4000` | Response cap for the stage-2 call |
+| `SHOTCALLER_UPDATE_CHECK` | on | `off` disables the background "update available" note |
 
 ## Game mode — one icon, zero thinking
 
@@ -113,6 +118,34 @@ Boost safety rules (deliberate, and not configurable):
 The Startup-folder variant starts the overlay **without** boost or
 auto-launch — it just waits quietly for League after login.
 
+The two shortcuts compose: **the Desktop icon works whether or not
+Shotcaller is already running.** If the Startup copy is idling, a second
+launch hands the game-mode routine (boost + League launch) to the running
+overlay instead of dying against the single-instance lock — and
+`boost.json` is re-read on every trigger, so list edits apply without a
+restart. One icon, valid in every state.
+
+### Zero upkeep
+
+Between games, Shotcaller keeps track of its own chores and tells you —
+quietly, in the overlay footer area, and only when nothing is happening
+(never during planning, a live game, or compact mode):
+
+- **Updates** — it checks its git checkout in the background (off the
+  launch path) and shows a note when `npm run update` has something to
+  apply. It never pulls on its own: a half-applied update right before a
+  queue is the worst possible timing, so applying stays your call.
+  Disable the check with `SHOTCALLER_UPDATE_CHECK=off`.
+- **Coach profile age** — it counts your finished games and, once the
+  profile is ~30 games old, notes that a regeneration is due (the profile
+  describes *you*, and you change). Regenerating resets the count
+  automatically.
+- **Post-game archive** — every finished game's end-of-game stats are
+  saved to `coach/history/games.jsonl` on their own (see below), so the
+  evidence for the next profile regeneration accumulates while you play.
+- **Champion data** — already zero-touch: re-synced per patch from Data
+  Dragon, cached on disk, tolerant of being offline.
+
 ## Developing without League running
 
 - `npm run start:mock` — replays a recorded ranked session (champ select →
@@ -143,7 +176,26 @@ The profile lives in the user message (not the cached rubric), so editing it
 never costs cache latency. Point `SHOTCALLER_PROFILE` at a different file to
 swap profiles. Delete the file to fall back to generic coaching. Regenerate
 it after a meaningful number of new games — it describes the player, not the
-patch.
+patch. (You don't have to count: Shotcaller tallies finished games against
+the profile's `generatedAt` and shows a quiet note once it hits ~30.)
+
+### Post-game archive
+
+Shotcaller already reads the end-of-game stats block for the session gate —
+so it archives it too. Every finished game appends one line to
+`coach/history/games.jsonl` (git-ignored):
+
+- the **raw EOG stats block, untouched** — the payload the client actually
+  sent, so a future profile regeneration can recompute any number from
+  ground truth instead of scraping op.gg, and
+- a small derived header for quick reading: win/loss, K/D/A, champion,
+  kill participation, control wards bought, cs, vision score, gold.
+
+All queues are archived (normals matter for tilt evidence), duplicates are
+dropped by `gameId` (reconnecting on the end-of-game screen doesn't
+double-count), and only games Shotcaller was running for are captured —
+op.gg still covers gaps. Move it with `SHOTCALLER_HISTORY=<path>`, disable
+with `SHOTCALLER_HISTORY=off`.
 
 ### Session gate & pick hints
 

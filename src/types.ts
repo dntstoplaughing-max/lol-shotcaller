@@ -50,6 +50,7 @@ export type ShotcallerEvent =
       reason?: string;
       untilTs?: number;
     }
+  | { kind: "game-result"; result: GameResult }
   | { kind: "reset" };
 
 /** Outcome of a finished game, parsed from the LCU end-of-game stats. */

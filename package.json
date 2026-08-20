@@ -13,7 +13,8 @@
     "simulate": "npm run build && node dist/simulate.js",
     "test": "vitest run",
     "shortcut": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-shortcuts.ps1",
-    "shortcut:startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-shortcuts.ps1 -Startup"
+    "shortcut:startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-shortcuts.ps1 -Startup",
+    "update": "git pull --ff-only && npm install --no-audit --no-fund"
   },
   "engines": {
     "node": ">=20"

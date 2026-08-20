@@ -24,6 +24,8 @@
   let gateInterval = null; // countdown ticker for cooldown gates
   let userToggledCollapse = false; // manual Ctrl+Alt+K wins over auto-compact
   let autoCollapsed = false;
+  const notes = new Map(); // id -> housekeeping note text from the main process
+  let calmStatus = true; // notes show only outside planning/live — no mid-game noise
 
   // Sections that stay visible in compact (collapsed) mode.
   const PINNED = new Set(["WIN CONDITION", "COMP IDENTITY", "FOCUS"]);
@@ -32,6 +34,22 @@
     pill.className = state;
     pill.textContent = state === "champselect" ? "champ select" : state;
     statusEl.textContent = text;
+    calmStatus = state !== "planning" && state !== "live";
+    renderNotes();
+  }
+
+  function renderNotes() {
+    const noteEl = el("note");
+    const show = calmStatus && notes.size > 0;
+    noteEl.hidden = !show;
+    if (!show) return;
+    noteEl.replaceChildren(
+      ...[...notes.values()].map((text) => {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div;
+      }),
+    );
   }
 
   function chip(slot, enemy) {
@@ -243,6 +261,10 @@
     } else if (msg.type === "collapse-toggle") {
       userToggledCollapse = true;
       document.body.classList.toggle("collapsed");
+    } else if (msg.type === "note") {
+      if (msg.text) notes.set(msg.id || "note", msg.text);
+      else notes.delete(msg.id || "note");
+      renderNotes();
     }
   }
 

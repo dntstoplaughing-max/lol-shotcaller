@@ -149,6 +149,22 @@ body.interactive #bar {
   font-weight: 600;
 }
 
+/* Housekeeping notes from the main process ("update available", "profile is
+   30 games old"). Quiet by design, and hidden entirely while planning/live. */
+#note {
+  margin: 6px 0 2px;
+  padding: 5px 9px;
+  border-left: 3px solid var(--gold-dim);
+  border-radius: 4px;
+  background: rgba(200, 170, 110, 0.07);
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+#note div + div {
+  margin-top: 3px;
+}
+
 #teams {
   padding: 4px 0 2px;
 }
@@ -260,6 +276,7 @@ body.collapsed .sec.active {
 
 body.collapsed #teams,
 body.collapsed #bans,
+body.collapsed #note,
 body.collapsed #status {
   display: none;
 }

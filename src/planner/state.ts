@@ -250,6 +250,9 @@ export class Shotcaller extends EventEmitter {
 
   /** Feed a finished game's outcome into the stop-loss gate. */
   onGameResult(result: GameResult): void {
+    // Every finished game is announced, gate or no gate — main.ts keeps the
+    // games-since-profile count from it. The overlay ignores this kind.
+    this.emit("event", { kind: "game-result", result });
     if (!this.gate) return;
     this.gate.record(result);
     this.emitGate();
