@@ -185,6 +185,10 @@ Yes — this is the same integration surface the big companion apps
 
 ## Architecture
 
+> Working on this repo (human or LLM)? **`INDEX.md` is the map** — compressed
+> architecture, invariants, decision + incident log, the coaching diagnosis,
+> and the profile-regeneration protocol. `CLAUDE.md` carries the hard rules.
+
 ```
 League client ──lockfile/WSS──▶ LcuConnector ──▶ Shotcaller (state machine)
                                                    │   fires stage 1 at pick lock,
