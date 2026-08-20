@@ -11,7 +11,9 @@
     "start:mock": "npm run build && electron . --mock --dry-run",
     "demo": "npm run build && electron . --demo",
     "simulate": "npm run build && node dist/simulate.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "shortcut": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-shortcuts.ps1",
+    "shortcut:startup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-shortcuts.ps1 -Startup"
   },
   "engines": {
     "node": ">=20"

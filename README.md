@@ -66,6 +66,38 @@ Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` in `.env`
 | `SHOTCALLER_EFFORT` | `low` | `low`/`medium`/`high` — reasoning depth vs. latency |
 | `SHOTCALLER_MAX_PLAN_TOKENS` | `4000` | Response cap for the stage-2 call |
 
+## Game mode — one icon, zero thinking
+
+```
+npm run shortcut            # puts "Shotcaller" on your Desktop
+npm run shortcut:startup    # optional: also start (idle) at login
+```
+
+Double-clicking the Desktop shortcut runs the whole pre-game routine:
+
+1. **Boost** — closes the background apps listed in `boost.json`
+   (disabled until you review the list and set `"enabled": true` — a
+   one-time decision). Launchers, music, and sync clients are pre-filled.
+2. **Launches League** via the Riot Client if it isn't already running
+   (path auto-detected; override with `SHOTCALLER_RIOT_CLIENT` in `.env`).
+3. **Starts the overlay**, which waits for champ select as usual.
+
+Boost safety rules (deliberate, and not configurable):
+
+- Only processes **named in `boost.json`** are ever touched. There is no
+  "close everything unnecessary" heuristic — software can't know which
+  process holds your unsaved work, so you name the list once instead.
+- A hard-coded never-kill guard protects Windows system processes,
+  everything Riot/Vanguard, and Shotcaller's own runtime, even if listed.
+- Graceful close by default (apps can prompt to save). Add `"force": true`
+  per entry only if you accept losing that app's unsaved state.
+- `"trigger": "gamestart"` defers the boost to the loading screen instead
+  of shortcut launch (e.g. keep Spotify through queue, drop it for the game).
+- Preview without touching anything: `npm start -- --game-mode --boost-dry-run`.
+
+The Startup-folder variant starts the overlay **without** boost or
+auto-launch — it just waits quietly for League after login.
+
 ## Developing without League running
 
 - `npm run start:mock` — replays a recorded ranked session (champ select →

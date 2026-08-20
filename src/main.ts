@@ -20,12 +20,18 @@ import { runMockSession } from "./lcu/mock";
 import { LiveClientPoller } from "./liveclient/poller";
 import { makePlanner } from "./planner/claude";
 import { Shotcaller } from "./planner/state";
+import { loadBoostConfig, runBoost, type BoostSummary } from "./system/boost";
+import { launchLeagueIfNeeded } from "./system/league";
 import type { ChampMap } from "./types";
 
 const flags = new Set(process.argv.slice(1));
 const MOCK = flags.has("--mock") || process.env.MOCK === "1";
 const DRY_RUN = flags.has("--dry-run") || process.env.PLAN_DRY_RUN === "1";
 const DEMO = flags.has("--demo");
+// Game mode: run the boost.json kill list and auto-launch League, so one
+// desktop shortcut is the whole pre-game routine.
+const GAME_MODE = flags.has("--game-mode") || process.env.SHOTCALLER_GAME_MODE === "1";
+const BOOST_DRY = flags.has("--boost-dry-run");
 
 const OVERLAY_WIDTH = 400;
 const OVERLAY_HEIGHT = 640;
@@ -105,8 +111,46 @@ async function startPipeline(win: BrowserWindow): Promise<void> {
     sc.announce("waiting", "Mock mode: replaying a recorded session…");
     await runMockSession(sc, { fast: false });
   } else {
+    if (GAME_MODE) await runGameMode(sc);
     await new LcuConnector(sc, poller).start();
   }
+}
+
+function boostLine(summary: BoostSummary): string {
+  if (summary.closed.length === 0) return "Game mode: nothing to close.";
+  const prefix = summary.dryRun ? "Game mode (dry run): would close" : "Game mode: closed";
+  return `${prefix} ${summary.closed.join(", ")}.`;
+}
+
+async function runGameMode(sc: Shotcaller): Promise<void> {
+  const config = loadBoostConfig(path.resolve(process.cwd(), "boost.json"));
+  if (!config) {
+    console.log("[boost] boost.json missing or invalid — skipping boost.");
+  } else if (!config.enabled) {
+    console.log(
+      '[boost] disabled — review boost.json and set "enabled": true to close background apps in game mode.',
+    );
+  } else if (config.trigger === "launch") {
+    const summary = await runBoost(config, BOOST_DRY, console.log);
+    sc.announce("waiting", boostLine(summary));
+  } else {
+    // trigger === "gamestart": free resources right as the loading screen
+    // begins (the matchup event), once per game.
+    let boostedThisGame = false;
+    sc.onEvent((evt) => {
+      if (evt.kind === "reset") boostedThisGame = false;
+      if (evt.kind === "matchup" && !boostedThisGame) {
+        boostedThisGame = true;
+        void runBoost(config, BOOST_DRY, console.log).then((summary) =>
+          console.log(`[boost] ${boostLine(summary)}`),
+        );
+      }
+    });
+  }
+  await launchLeagueIfNeeded((msg) => {
+    console.log(msg);
+    sc.announce("waiting", msg.replace(/^\[league\] /, ""));
+  });
 }
 
 const gotLock = app.requestSingleInstanceLock();

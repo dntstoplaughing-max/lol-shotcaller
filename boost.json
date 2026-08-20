@@ -1,0 +1,17 @@
+{
+  "_readme": "Game-mode kill list. Flip enabled to true once you've reviewed the list. Only processes named here are ever closed; system/Riot/Vanguard processes are protected no matter what. Graceful close by default (apps can prompt to save); add \"force\": true per entry ONLY if you accept losing its unsaved state. trigger: \"launch\" = when the Shotcaller shortcut starts, \"gamestart\" = at the loading screen. Test with: npm start -- --game-mode --boost-dry-run",
+  "enabled": false,
+  "trigger": "launch",
+  "graceMs": 4000,
+  "processes": [
+    { "name": "Spotify.exe" },
+    { "name": "steam.exe" },
+    { "name": "steamwebhelper.exe" },
+    { "name": "EpicGamesLauncher.exe" },
+    { "name": "Battle.net.exe" },
+    { "name": "GalaxyClient.exe" },
+    { "name": "UbisoftConnect.exe" },
+    { "name": "OneDrive.exe" },
+    { "name": "Dropbox.exe" }
+  ]
+}
