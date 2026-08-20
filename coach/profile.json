@@ -1,0 +1,49 @@
+{
+  "riotId": "NoRights4Laners#512",
+  "region": "NA",
+  "rank": "Silver 3, 10-24 LP depending on snapshot (season peak Silver 3 86 LP; career peak Gold 3, 2023 S2)",
+  "sampleSize": "62 ranked solo games S2026 (60 in the champion table), 10-game detailed recent window, plus 10 recorded season finishes 2020-2026; per-champion and matchup splits are n<=9 and treated as noise",
+  "summary": "Six years of season finishes put this player at a stable mid-Silver equilibrium, and this season's 48% over 62 games is statistically indistinguishable from maintaining it \u2014 the problem is habits, not luck or mechanics. Farming and early game are strong; the LP leaks are low kill participation (45%), zero control wards, deaths on shutdown-carrying assassins, and tilt-queueing that erased a month of LP in two days.",
+  "identity": "Solo-carry assassin jungler who tries to win by out-killing the lobby single-handed \u2014 100% jungle, 63% Qiyana, all-assassin pool, more kills than assists, and a Riot ID that blames the laners.",
+  "focusAreas": [
+    {
+      "leak": "Kill-hoarding with low map presence: 45% kill participation means over half of his team's kills happen without him, and he averages more kills (8.7) than assists (5.4) while consuming more team gold (22.5%) than the damage share he returns (~18%).",
+      "evidence": "Stable 60-game season means (op.gg + DeepLoL agree); last-10 per-game KP mean 42.8%; emblem game: Aug 19 ranked Rengar LOSS at 17/5/0 \u2014 17 kills, zero assists, 2nd-best score in lobby, still a loss.",
+      "inGameCue": "After every kill or pick, spend the tempo WITH teammates within ~20 seconds \u2014 dive with the laner, shove-crash, or take grubs/drake with numbers \u2014 instead of resetting to hunt the next solo kill.",
+      "planDirective": "Every plan must convert his early aggression into team plays: for each planned gank or pick window, name the specific follow-up done WITH teammates (which objective, which lane crash, which dive), set an explicit kill-participation target of 60%+, and state that the game is graded on KP and objectives taken \u2014 never on kills. If the plan would produce a high-kill low-assist game, it is the wrong plan."
+    },
+    {
+      "leak": "Zero control wards per game as a jungler, season-long \u2014 the objective-setup purchase is entirely missing, exactly where skirmish wins would become objectives.",
+      "evidence": "op.gg 60-game season average: 0 control wards (vision score 29 and 10 trinket wards/game show trinket usage is fine); DeepLoL shows 0 control wards in 9 of the last 10 games, and the lone exception was a win.",
+      "inGameCue": "Buy one control ward every base from 5:00 onward and place it at the next spawning objective (grubs ~6:00, drakes, baron) about 45 seconds before it spawns.",
+      "planDirective": "Every plan must include a control-ward script tied to that game's objective spawns: which recall timings to buy on and which pit/river spot to place for the next grubs/drake/baron window, ~45 seconds ahead. Treat any base without a control-ward purchase as a named mistake in the post-game grading."
+    },
+    {
+      "leak": "Death discipline on shutdown-carrying snowball assassins: 5.3 deaths/game season-wide (5.8 on Qiyana) hands shutdown gold back and refunds the leads he generates.",
+      "evidence": "60-game season means; recent losses averaged 6.7 deaths vs 2.5 in wins (loss-inflation confound acknowledged \u2014 the structural signal is the season-level 5.8 on a bounty-carrying assassin).",
+      "inGameCue": "On Qiyana, cap pre-14-minute deaths at one; after any death, no re-engaging for ~3 minutes unless with numbers and vision.",
+      "planDirective": "When he is ahead, the plan must state explicitly what his shutdown bounty is worth to the enemy and prescribe the post-death reset behavior (farm, mirror the map, group) in advance \u2014 the plan names the situations where he is NOT allowed to coin-flip, before the game, not after."
+    },
+    {
+      "leak": "Tilt-queueing, directly evidenced: requeued ranked within minutes of a lobby-worst 4/9/5, entered ranked ~26 minutes after a 2/9/2 bottom-of-lobby normal, and opened a second consecutive day cold on ranked mid-streak \u2014 a two-day stretch that round-tripped 36 LP (46 to 10), about a month of climbing.",
+      "evidence": "op.gg/DeepLoL timestamps Aug 18-19 2026; day boundary did not function as a reset (0-3 Aug 18, then 0-2 ranked Aug 19); streak quality was bimodal \u2014 two rank-9-of-10 collapses beside two team-best losses, so specific tilted games did the damage. The streak length itself is statistically normal; the requeue behavior is the leak.",
+      "inGameCue": "Two consecutive ranked losses ends ranked for the day; any bottom-3-of-lobby game triggers a mandatory 15-minute cooldown plus one written note before requeueing.",
+      "planDirective": "Before generating any plan, check session state: if the last ranked game was a loss, the plan must open by stating losses-this-session and whether the stop-loss (2 consecutive ranked losses = done for the day) or the 15-minute post-bottom-3 cooldown applies, and must key these rules on losses, not on the calendar day \u2014 a new day mid-streak is not a reset."
+    },
+    {
+      "leak": "Structural pool gap plus an unconverted mid-game: all seven season picks are same-archetype assassin/carry junglers with no frontline or deficit-tolerant option, while his consistently strong early game (Qiyana +755 gold@15 snapshot, lane-lead 76 vs 55 average) is not translating into a winning season \u2014 directionally, the 15-25 minute window after a lead is where games are being lost.",
+      "evidence": "Season pool: Qiyana/Rengar/Kindred/Ekko/Zaahen/Bel'Veth/Kayn, zero frontline/utility (op.gg); only meaningful tank mastery anywhere is Zac at 57,927 points, unplayed. Conversion claim is directional: gold@15 comes from a frozen 26-game 2026-07-21 snapshot, and no per-game led-at-15 winrate exists in any source. Backup winrates (Rengar 33%, Kindred 29%, Ekko 100%) are n<=9 noise and must not drive pick decisions.",
+      "inGameCue": "When ahead at 15, pre-commit to the next two objective windows (tower/grubs/drake chain after every won fight from 20:00 on) instead of hunting the next kill.",
+      "planDirective": "Every plan must script the 15-25 minute window in advance: after any won fight past 15:00, name the objective or tower to convert to before the next fight is allowed. When the enemy comp is assassin-hostile (heavy lockdown or tank frontline), the plan must say plainly that the pool has no frontline answer and shift the win condition to picks-into-objectives \u2014 and it must never justify a champion pick from this season's per-champion winrates, which are statistical noise."
+    }
+  ],
+  "championNotes": {
+    "Qiyana": "The real main and only sample with statistical standing (38 of 62 games, 1.1M mastery) \u2014 commitment is the fact, her 52.6% winrate is not distinguishable from his overall play. Strong early numbers (lane lead 76 vs 55 avg) but 5.8 deaths/game feeds shutdowns; plan her games around converting the early edge and protecting the bounty.",
+    "Rengar": "His lowest kill participation (40%) and assists (3.0/game) of the mains \u2014 the 17/5/0 zero-assist loss is the failure mode in miniature. The 3-6 record is noise, but any Rengar plan must force team conversion after picks, not more solo kills.",
+    "Kindred": "The 2-5 record is noise and proves nothing; if picked, the plan should lean on her scaling and his farm (his highest cs@15 at 111) rather than assassin-style solo hunting, since she doesn't share Qiyana's snowball profile.",
+    "Ekko": "3-0 with 14.5 KDA and 0.7 deaths/game is a hypothesis, not proof (one in eight coin-flip players matches a 3-0) \u2014 the low-death profile is promising, so collect a deliberate 10-15 game block before promoting him to permanent second pick."
+  },
+  "caveats": "Only three things in the data are load-bearing (the multi-season Silver equilibrium, 100% jungle, and 60-game process-stat means); per-champion/matchup winrates are n<=9 noise, all gold@15 figures are a frozen 26-game July snapshot, no source exposed objectives/first-blood/deaths-by-minute/duration splits, duo status is unknown (all premade-detecting sources bot-blocked), and the lead-conversion diagnosis is directional pending replay or timeline review.",
+  "generatedAt": "2026-08-20",
+  "generatedBy": "ultracode multi-agent diagnosis (4 gatherers, 5 lenses, 2 adversarial verifiers, 1 synthesizer) over op.gg + DeepLoL public data"
+}
