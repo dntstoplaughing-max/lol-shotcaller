@@ -52,17 +52,32 @@ npm start
 
 | Keys | Action |
 | --- | --- |
-| `Ctrl+Alt+O` | Toggle mouse interaction (overlay is click-through by default; interactive mode lets you scroll/drag it) |
-| `Ctrl+Alt+K` | Compact mode: only the win condition + the section the game clock points at |
+| `Ctrl+Alt+O` | Toggle mouse interaction (overlay is click-through by default; interactive mode lets you scroll/drag it, and auto-locks back to click-through after ~20s) |
+| `Ctrl+Alt+K` | Compact mode: win condition + FOCUS + the section the game clock points at |
+| `Ctrl+Alt+Shift+Q` | Panic quit — kills the whole app instantly |
 
-Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` in `.env`.
+Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` / `SHOTCALLER_HOTKEY_QUIT` in `.env`.
+
+**Mouse safety, by construction:** the overlay never installs a mouse hook
+(no `forward: true` — a starved global hook is how overlays freeze the OS
+cursor mid-game), never takes keyboard focus (the game keeps focus even
+while you scroll the overlay), is invisible to Alt+Tab, and interactive
+mode reverts to click-through on its own (`SHOTCALLER_INTERACTIVE_TIMEOUT_S`,
+0 to disable). If anything ever looks stuck anyway: `Ctrl+Alt+Shift+Q`, or
+`Ctrl+Alt+Del` → Task Manager (arrow keys + Enter work without a mouse) →
+end `electron.exe`.
+
+The overlay shows the full plan through the loading screen, then
+**auto-compacts at 1:30** (when lanes meet) to the win condition + FOCUS +
+current section. `Ctrl+Alt+K` re-expands; a manual toggle disables
+auto-compact for that game.
 
 ### Tuning
 
 | Env var | Default | Notes |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | — | Required for real plans; without it you get canned dry-run text |
-| `SHOTCALLER_MODEL` | `claude-opus-5` | `claude-haiku-4-5` is the cheap/fast option if you want plans in ~5 s |
+| `SHOTCALLER_MODEL` | `claude-opus-5` | `claude-fable-5` for the strongest reasoning (premium tier, works out of the box incl. refusal fallback); `claude-haiku-4-5` for cheap/fast ~5s plans. The console logs `ms=` per call for A/B comparisons |
 | `SHOTCALLER_EFFORT` | `low` | `low`/`medium`/`high` — reasoning depth vs. latency |
 | `SHOTCALLER_MAX_PLAN_TOKENS` | `4000` | Response cap for the stage-2 call |
 
@@ -169,6 +184,10 @@ Yes — this is the same integration surface the big companion apps
   only live signal it reads is the game clock.
 
 ## Architecture
+
+> Working on this repo (human or LLM)? **`INDEX.md` is the map** — compressed
+> architecture, invariants, decision + incident log, the coaching diagnosis,
+> and the profile-regeneration protocol. `CLAUDE.md` carries the hard rules.
 
 ```
 League client ──lockfile/WSS──▶ LcuConnector ──▶ Shotcaller (state machine)

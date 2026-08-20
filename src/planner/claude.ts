@@ -84,6 +84,7 @@ export class ClaudePlanner implements Planner {
     onToken: (text: string) => void,
     signal: AbortSignal,
   ): Promise<string> {
+    const startedAt = Date.now();
     // Effort is supported on the Opus 4.6+/Sonnet 4.6+/Opus 5/Fable 5 line;
     // refusal fallbacks exist on Opus 5/Fable 5. Older/smaller models
     // (e.g. claude-haiku-4-5 via SHOTCALLER_MODEL) get a plain request.
@@ -127,7 +128,8 @@ export class ClaudePlanner implements Planner {
 
     const usage = final.usage;
     console.log(
-      `[planner] ${this.model} out=${usage.output_tokens} ` +
+      `[planner] ${this.model} ms=${Date.now() - startedAt} ` +
+        `out=${usage.output_tokens} ` +
         `cache_read=${usage.cache_read_input_tokens ?? 0} ` +
         `cache_write=${usage.cache_creation_input_tokens ?? 0}`,
     );

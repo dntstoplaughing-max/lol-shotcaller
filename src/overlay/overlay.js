@@ -22,6 +22,8 @@
   let renderQueued = false;
   let activeSection = null; // set by the game clock
   let gateInterval = null; // countdown ticker for cooldown gates
+  let userToggledCollapse = false; // manual Ctrl+Alt+K wins over auto-compact
+  let autoCollapsed = false;
 
   // Sections that stay visible in compact (collapsed) mode.
   const PINNED = new Set(["WIN CONDITION", "COMP IDENTITY", "FOCUS"]);
@@ -147,6 +149,13 @@
       gameTimeSec < 14 * 60 ? "YOUR LANE" : gameTimeSec < 25 * 60 ? "MID GAME" : "LATE GAME";
     const changed = next !== activeSection;
     activeSection = next;
+    // Reading time is over once lanes meet (~1:30): auto-compact to the
+    // win condition + FOCUS + the current section. Ctrl+Alt+K re-expands,
+    // and a manual toggle disables auto-compact for the rest of the game.
+    if (gameTimeSec >= 90 && !userToggledCollapse && !autoCollapsed) {
+      autoCollapsed = true;
+      document.body.classList.add("collapsed");
+    }
     scheduleRender();
     if (changed) {
       // The overlay is click-through in game, so nobody can scroll it by
@@ -210,6 +219,10 @@
         vsRow.hidden = true;
         bansEl.hidden = true;
         setPickHint(null);
+        // New game: expand again and re-arm auto-compact.
+        userToggledCollapse = false;
+        autoCollapsed = false;
+        document.body.classList.remove("collapsed");
         // Gate deliberately NOT cleared here: a closed gate must survive
         // into the next champ select (the state machine re-emits it there).
         alliesEl.replaceChildren();
@@ -225,9 +238,10 @@
     if (msg.type === "interactive") {
       document.body.classList.toggle("interactive", Boolean(msg.value));
       el("hint").textContent = msg.value
-        ? "Interactive — drag header to move · Ctrl+Alt+O to release the mouse"
+        ? "Interactive — auto-locks back to click-through shortly · Ctrl+Alt+O locks now"
         : "Ctrl+Alt+O — mouse on/off · Ctrl+Alt+K — compact";
     } else if (msg.type === "collapse-toggle") {
+      userToggledCollapse = true;
       document.body.classList.toggle("collapsed");
     }
   }
