@@ -4,9 +4,12 @@ Compressed context for future sessions (human or LLM). Reading order:
 this file → `README.md` for user-facing behavior → source only as needed.
 Read `coach/diagnosis.md` in full only when revising coaching content.
 
-**Status (2026-08-20):** working. First real game validated the product
-(owner: "helped me see the win condition") and exposed one incident (mouse
-freeze — fixed, see incident log). Owner is A/B testing models.
+**Status (2026-08-21):** working. Field report 1 validated the product
+(owner: "helped me see the win condition") and exposed the mouse-freeze
+incident (fixed). Field report 2 (a 27/3/3 stomp): "repeat overloaded
+advice" — every profile directive was recited in every plan; fixed by the
+rubric's say-it-once contract (#5, decision log). Owner is A/B testing
+models — plans.jsonl now records model + ms per plan.
 
 ## Map
 
@@ -17,13 +20,13 @@ src/
   types.ts               ShotcallerEvent union + LCU payload shapes + GameResult
   planner/
     state.ts             THE state machine: when stages fire, sides, hints, gate — all timing lives here
-    prompt.ts            cache-stable RUBRIC (+FOCUS contract) + per-game message builders
+    prompt.ts            cache-stable RUBRIC (FOCUS + say-it-once personalization contract) + per-game message builders
     claude.ts            streaming planner (opus-5 default, effort low, refusal fallback,
                          1h-TTL cached rubric) + DryRunPlanner twin + profile injection
   coach/
     profile.ts           CoachProfile type, loader, prompt-block formatter
     gate.ts              SessionGate: 2 ranked L → closed; rough game → 15min cooldown; W reopens
-    history.ts           post-game archive: raw EOG + derived header → coach/history/games.jsonl (JSONL, gameId-deduped)
+    history.ts           post-game archive (raw EOG + derived header, gameId-deduped) + plan log appender
   lcu/
     connector.ts         league-connect wiring: WS subscriptions, roster/EOG retries, reconnect loop
     eog.ts               defensive parser for /lol-end-of-game/v1/eog-stats-block
@@ -38,9 +41,10 @@ src/
 coach/
   profile.json           machine profile the planner injects (leaks, directives, pool plan)
   diagnosis.md           the full human-readable hardstuck diagnosis
-  history/games.jsonl    post-game archive (git-ignored; grows as the owner plays)
+  history/               git-ignored, grows as the owner plays: games.jsonl (raw EOG
+                         per finished game) + plans.jsonl (every plan + model + ms)
 fixtures/                recorded LCU shapes + ddragon slim + EOG block (tests/mock)
-test/                    66 vitest tests: state timing, prompts, gate, boost, ddragon, coach, housekeeping, history
+test/                    68 vitest tests: state timing, prompts, gate, boost, ddragon, coach, housekeeping, history
 scripts/install-shortcuts.ps1   Desktop/Startup shortcuts (npm run shortcut[:startup])
 boost.json               user-reviewed kill list (enabled:false until owner opts in)
 .github/workflows/ci.yml typecheck + tests + build + simulate (no Electron binary)
@@ -147,6 +151,31 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
   failure logs and never touches the gate or pipeline. Enables the
   roadmap's real "bottom-3 of lobby" gate rule later — NOT wired into the
   gate now; changing the owner's stop-loss triggers needs the owner.
+- **Say-it-once personalization (#5)** — field report 2026-08-20 (27/3/3
+  stomp, overlay turned off at ~5min): plans were "repeat overloaded".
+  Root cause: five profile planDirectives each read "every plan must…" and
+  the rubric said to weave directives into every section they touch — so
+  each plan recited all five AND FOCUS restated them, near-identically
+  every game. Fixed at the consumption layer (rubric), not by editing the
+  profile (profile edits are guarded): budgets are hard caps that beat
+  directives; each directive at most once, as matchup detail; untriggered
+  directives omitted; session-state directives ignored in-plan (the live
+  gate owns session state — the model was opening plans with stop-loss
+  boilerplate it cannot know). Companions: Ctrl+Alt+H hides the overlay
+  while the pipeline keeps running (quitting the app mid-game was losing
+  EOG → gate + archive; auto-reshows at next champ select, showInactive
+  only — never focus); plans.jsonl gives plan-quality complaints and the
+  model A/B receipts. Rubric edits invalidate the prompt cache once per
+  deploy (1h TTL) — fine; keep it ≥ ~1024 tokens (prompt.test.ts floor).
+- **Hotkeys must be observable (#5)** — same field report: "tried to
+  compact it and it didn't work", undiagnosable because both failure modes
+  were invisible: registration can fail silently (register() returns false
+  when another app owns the combo — was never checked), and Ctrl+Alt+K is
+  a toggle, so after auto-compact (1:30) pressing "compact" EXPANDS —
+  reads as broken. Now: every registration failure is an overlay note
+  naming the .env override, every fire logs to console, and the footer
+  names the current state (FULL PLAN/COMPACT/Interactive) and pulses on
+  each press — "footer didn't flash" now cleanly means "key never arrived".
 - Repo layout: overlay is buildless on purpose; CJS output for
   league-connect interop; fixtures + mock + simulate exist so everything
   verifies without League or an API key (CI does exactly that).
@@ -171,6 +200,9 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
 4. **#4** zero-thought ops: second-instance game-mode handoff, overlay
    position memory, update + profile-age nudges, `npm run update`,
    post-game EOG archive → coach/history/games.jsonl.
+5. **#5** say-it-once personalization contract (fix for "repeat overloaded"
+   plans), hide-overlay hotkey (Ctrl+Alt+H — pipeline keeps running),
+   plan log → coach/history/plans.jsonl.
 
 ## Verifying changes
 

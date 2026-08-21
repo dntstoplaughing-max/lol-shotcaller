@@ -41,7 +41,7 @@ export type ShotcallerEvent =
   | { kind: "plan-stage"; stage: 1 | 2 }
   | { kind: "plan-token"; stage: 1 | 2; text: string }
   | { kind: "plan-done"; stage: 1 | 2; full: string }
-  | { kind: "plan-error"; message: string }
+  | { kind: "plan-error"; stage?: 1 | 2; message: string }
   | { kind: "clock"; gameTimeSec: number }
   | { kind: "pick-hint"; text: string | null }
   | {

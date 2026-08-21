@@ -52,6 +52,34 @@
     );
   }
 
+  // The footer names the CURRENT state, not just the keys — a hotkey press
+  // must produce a visible change here even when the layout barely moves
+  // (e.g. pressing "compact" after auto-compact already collapsed it).
+  // pulse=true briefly highlights the line so the acknowledgment is seen.
+  function refreshHint(pulse) {
+    const hintEl = el("hint");
+    if (document.body.classList.contains("interactive")) {
+      hintEl.textContent =
+        "Interactive — auto-locks back to click-through shortly · Ctrl+Alt+O locks now";
+    } else if (document.body.classList.contains("collapsed")) {
+      hintEl.textContent = "COMPACT · Ctrl+Alt+K — full plan · Ctrl+Alt+H — hide";
+    } else {
+      hintEl.textContent =
+        "FULL PLAN · Ctrl+Alt+K — compact · Ctrl+Alt+O — mouse · Ctrl+Alt+H — hide";
+    }
+    if (pulse) {
+      hintEl.classList.remove("pulse");
+      void hintEl.offsetWidth; // restart the CSS animation
+      hintEl.classList.add("pulse");
+    }
+  }
+
+  function setCollapsed(on, fromUser) {
+    if (fromUser) userToggledCollapse = true;
+    document.body.classList.toggle("collapsed", on);
+    refreshHint(fromUser);
+  }
+
   function chip(slot, enemy) {
     const span = document.createElement("span");
     span.className = "chip" + (slot.isMe ? " me" : "") + (enemy ? " enemy" : "");
@@ -172,7 +200,7 @@
     // and a manual toggle disables auto-compact for the rest of the game.
     if (gameTimeSec >= 90 && !userToggledCollapse && !autoCollapsed) {
       autoCollapsed = true;
-      document.body.classList.add("collapsed");
+      setCollapsed(true, false);
     }
     scheduleRender();
     if (changed) {
@@ -240,7 +268,7 @@
         // New game: expand again and re-arm auto-compact.
         userToggledCollapse = false;
         autoCollapsed = false;
-        document.body.classList.remove("collapsed");
+        setCollapsed(false, false);
         // Gate deliberately NOT cleared here: a closed gate must survive
         // into the next champ select (the state machine re-emits it there).
         alliesEl.replaceChildren();
@@ -255,12 +283,9 @@
   function handleUi(msg) {
     if (msg.type === "interactive") {
       document.body.classList.toggle("interactive", Boolean(msg.value));
-      el("hint").textContent = msg.value
-        ? "Interactive — auto-locks back to click-through shortly · Ctrl+Alt+O locks now"
-        : "Ctrl+Alt+O — mouse on/off · Ctrl+Alt+K — compact";
+      refreshHint(true);
     } else if (msg.type === "collapse-toggle") {
-      userToggledCollapse = true;
-      document.body.classList.toggle("collapsed");
+      setCollapsed(!document.body.classList.contains("collapsed"), true);
     } else if (msg.type === "note") {
       if (msg.text) notes.set(msg.id || "note", msg.text);
       else notes.delete(msg.id || "note");

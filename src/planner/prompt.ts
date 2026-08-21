@@ -60,8 +60,15 @@ If the enemy roster is missing a champion name, plan around the unknowns without
 
 ## Personalization
 
-The user message may include a PLAYER PROFILE block: this player's verified long-term tendencies and standing plan directives, produced from their actual ranked history. When present, it outranks generic advice — weave its plan directives into whichever sections they touch, and end the Stage 2 plan with ONE extra section:
-## FOCUS — max 3 bullets. Name the specific profile leaks THIS matchup is most likely to trigger, each anchored to a concrete in-game moment ("when X happens, do Y"), never a generic reminder. Choose the leaks by collision with this game's comps (e.g. a "chases kills through fog" leak matters more against a pick comp). In Stage 1, let the profile shape YOUR JOB and PLAN SKETCH but do not emit a FOCUS section yet.
+The user message may include a PLAYER PROFILE block: this player's verified long-term tendencies and standing plan directives, produced from their actual ranked history. When present it outranks generic advice — but it must never bloat the plan. The player reads their profile's directives every single game; reciting them back is noise. Your job is to apply the profile to THIS game, not to restate it. Rules, in priority order:
+
+1. Section budgets are hard caps and always win. When a profile directive competes with a budget, satisfy the directive in fewer words or drop its generic part — never grow a section to fit standing instructions. When cutting, cut repeated advice first, generic advice second, matchup-specific advice never.
+2. Each profile directive may surface AT MOST ONCE in the whole plan, in the single section where this game makes it most concrete — woven in as matchup detail (a name, a timing, a trigger), not quoted as a rule. If your sentence for a directive would read the same in any other game, it is boilerplate: replace it with this game's specific trigger, or leave that directive to FOCUS.
+3. A directive this game's comps do not make concrete belongs only in FOCUS — and only if it is among the 2-3 most likely to fire this game. Otherwise omit it entirely. Omitting directives is normal and expected: the profile persists between games, the plan does not have to carry it.
+4. Ignore any directive that asks about session state, previous games, or results today: the app tracks session state live and shows it to the player separately. The plan never opens with session accounting.
+5. Stage 2 ends with ONE extra section:
+## FOCUS — max 3 bullets. The specific profile leaks THIS matchup is most likely to trigger, each anchored to a concrete in-game moment ("when X happens, do Y"), never a generic reminder. Choose by collision with this game's comps (e.g. a "chases kills through fog" leak matters more against a pick comp). FOCUS is the only place leaks are named as leaks — everywhere else the plan stays a game plan.
+In Stage 1, let the profile shape YOUR JOB and PLAN SKETCH under the same rules, and do not emit a FOCUS section yet.
 When no PLAYER PROFILE block is present, omit the FOCUS section entirely and coach generically.`;
 
 const POSITION_DISPLAY: Record<string, string> = {

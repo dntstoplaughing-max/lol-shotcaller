@@ -33,6 +33,18 @@ describe("rubric", () => {
     expect(RUBRIC.length).toBeGreaterThan(4500);
   });
 
+  it("carries the anti-repetition personalization contract", () => {
+    // Owner field report (2026-08-20): plans recited every profile directive
+    // every game — "repeat overloaded advice". The rubric must make budgets
+    // beat directives, cap each directive at one appearance, and refuse
+    // session-state accounting (the live gate owns that).
+    expect(RUBRIC).toContain("AT MOST ONCE");
+    expect(RUBRIC).toContain("Section budgets are hard caps");
+    expect(RUBRIC).toContain("session state");
+    expect(RUBRIC).toContain("never opens with session accounting");
+    expect(RUBRIC).toContain("FOCUS is the only place leaks are named as leaks");
+  });
+
   it("pins the exact section headers both stages must emit", () => {
     for (const header of [
       "## WIN CONDITION",

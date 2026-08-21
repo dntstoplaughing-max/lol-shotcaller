@@ -180,6 +180,34 @@ export function appendGameRecord(
   return "appended";
 }
 
+// ---------------------------------------------------------------- plan log
+
+/**
+ * Every generated plan, logged next to the game archive. This is how "the
+ * plan felt repetitive/slow/wrong" becomes debuggable after the fact — the
+ * overlay's copy dies with the app, this line doesn't. Also the receipt for
+ * model A/B: each record carries the model and effort that produced it.
+ */
+export interface PlanLogRecord {
+  archivedAt: string;
+  stage: 1 | 2;
+  /** Configured model ("dry-run" when no API key / --dry-run). */
+  model: string;
+  effort: string;
+  /** Wall-clock from stage start to complete, as the player experienced it. */
+  msToComplete: number | null;
+  allies: string[];
+  enemies: string[];
+  text?: string;
+  error?: string;
+}
+
+/** Append a plan record. Plans are never deduped — every attempt is data. */
+export function appendPlanRecord(filePath: string, record: PlanLogRecord): void {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.appendFileSync(filePath, JSON.stringify(record) + "\n");
+}
+
 /** One console line per archived game. */
 export function describeRecord(record: GameRecord): string {
   const kda = `${record.kills}/${record.deaths}/${record.assists}`;

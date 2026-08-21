@@ -381,7 +381,7 @@ export class Shotcaller extends EventEmitter {
       this.emit("event", { kind: "plan-done", stage: 1, full: text });
     } catch (err) {
       if (abort.signal.aborted) return; // superseded by stage 2 — expected
-      this.emit("event", { kind: "plan-error", message: String(err) });
+      this.emit("event", { kind: "plan-error", stage: 1, message: String(err) });
     }
   }
 
@@ -398,7 +398,7 @@ export class Shotcaller extends EventEmitter {
       this.status("live", "Plan ready — good luck.");
     } catch (err) {
       if (abort.signal.aborted) return;
-      this.emit("event", { kind: "plan-error", message: String(err) });
+      this.emit("event", { kind: "plan-error", stage: 2, message: String(err) });
     }
   }
 

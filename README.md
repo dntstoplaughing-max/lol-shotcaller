@@ -54,9 +54,19 @@ npm start
 | --- | --- |
 | `Ctrl+Alt+O` | Toggle mouse interaction (overlay is click-through by default; interactive mode lets you scroll/drag it, and auto-locks back to click-through after ~20s) |
 | `Ctrl+Alt+K` | Compact mode: win condition + FOCUS + the section the game clock points at |
+| `Ctrl+Alt+H` | Hide/show the overlay. **Use this instead of quitting when you're done reading** — the app keeps running invisibly, so the end-of-game stats still reach the session gate and the archive. It reappears on its own at the next champ select |
 | `Ctrl+Alt+Shift+Q` | Panic quit — kills the whole app instantly |
 
-Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` / `SHOTCALLER_HOTKEY_QUIT` in `.env`.
+Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` /
+`SHOTCALLER_HOTKEY_HIDE` / `SHOTCALLER_HOTKEY_QUIT` in `.env`.
+
+**Every hotkey press is acknowledged**: the overlay footer names the current
+state (FULL PLAN / COMPACT / Interactive) and flashes on each press — note
+that `Ctrl+Alt+K` is a toggle, so if auto-compact already collapsed the
+overlay, pressing it *expands*. If the footer doesn't react at all, the key
+never reached Shotcaller (see Troubleshooting). If a hotkey can't be
+registered at startup (another app owns the combo), the overlay says so in
+a note instead of failing silently.
 
 **Mouse safety, by construction:** the overlay never installs a mouse hook
 (no `forward: true` — a starved global hook is how overlays freeze the OS
@@ -197,6 +207,12 @@ double-count), and only games Shotcaller was running for are captured —
 op.gg still covers gaps. Move it with `SHOTCALLER_HISTORY=<path>`, disable
 with `SHOTCALLER_HISTORY=off`.
 
+**Generated plans are logged too** (`coach/history/plans.jsonl`): every
+plan's full text with the rosters it was written for, the model and effort
+that produced it, and how long it took to land. When a plan feels
+repetitive, wrong, or slow, the receipt survives the game — and comparing
+models is reading a file instead of remembering.
+
 ### Session gate & pick hints
 
 Two live enforcers of the profile, both on by default:
@@ -273,6 +289,10 @@ Data Dragon (cached) ──names──▶ prompt builder ──▶ Claude (strea
   (known Electron transparency quirk on some GPUs).
 - **"Waiting for the League client…" forever** → make sure the League
   *client* (not just Riot Client) is running; Shotcaller reads its lockfile.
+- **Pressed a hotkey and the overlay footer didn't flash** → the key never
+  reached Shotcaller: another app grabbed the combo mid-session, or the game
+  intercepted it. Rebind via the `SHOTCALLER_HOTKEY_*` variables in `.env`.
+  (A combo that was already taken at startup shows as an overlay note.)
 - **Plans feel slow** → set `SHOTCALLER_MODEL=claude-haiku-4-5`, keep
   `SHOTCALLER_EFFORT=low`.
 - **No plan, status shows an API error** → check `ANTHROPIC_API_KEY` in

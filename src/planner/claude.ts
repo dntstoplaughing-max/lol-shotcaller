@@ -17,7 +17,7 @@ import { loadCoachProfile, profilePromptBlock } from "../coach/profile";
 import type { Planner, PlanInput } from "../types";
 import { buildStage1Message, buildStage2Message, RUBRIC } from "./prompt";
 
-const DEFAULT_MODEL = "claude-opus-5";
+export const DEFAULT_MODEL = "claude-opus-5";
 
 function envInt(name: string, fallback: number): number {
   const raw = Number(process.env[name]);
