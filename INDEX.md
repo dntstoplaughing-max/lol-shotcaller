@@ -41,6 +41,7 @@ src/
 coach/
   profile.json           machine profile the planner injects (leaks, directives, pool plan)
   diagnosis.md           the full human-readable hardstuck diagnosis
+  notes.md               owner's replay self-review journal (dated entries; regen input, n=1 each)
   history/               git-ignored, grows as the owner plays: games.jsonl (raw EOG
                          per finished game) + plans.jsonl (every plan + model + ms)
 fixtures/                recorded LCU shapes + ddragon slim + EOG block (tests/mock)
@@ -94,7 +95,10 @@ gaming PC — one line per finished game with the raw LCU EOG block plus a
 derived header (win, K/D/A, KP, control wards, cs, vision, gold). Ground
 truth, all queues, no scraping — but only games Shotcaller was running
 for, and no timeline stats (gold@15 etc.). Use the scrapes below to
-backfill gaps and for anything per-minute.
+backfill gaps and for anything per-minute. Also read `coach/notes.md` —
+the owner's replay self-review journal: decision-quality observations the
+stats can't see. Self-reported and n=1 per entry, so treat them as
+hypotheses for the verification pass, not conclusions.
 
 Sources that actually work from an agent environment (2026-08):
 - **op.gg**: server-rendered — profile page + `/champions` `/matches`
@@ -203,6 +207,8 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
 5. **#5** say-it-once personalization contract (fix for "repeat overloaded"
    plans), hide-overlay hotkey (Ctrl+Alt+H — pipeline keeps running),
    plan log → coach/history/plans.jsonl.
+6. **#6** coach/notes.md — owner's replay self-review journal (first
+   entry: the 27/3/3 comeback review), wired into the regen protocol.
 
 ## Verifying changes
 
