@@ -42,6 +42,8 @@ coach/
   profile.json           machine profile the planner injects (leaks, directives, pool plan)
   diagnosis.md           the full human-readable hardstuck diagnosis
   notes.md               owner's replay self-review journal (dated entries; regen input, n=1 each)
+  qiyana-jungle-26.16.md patch-stamped build/runes reference, owner-amended (DH + Gluttonous
+                         Greaves dissents logged); for the human — the planner never reads it
   history/               git-ignored, grows as the owner plays: games.jsonl (raw EOG
                          per finished game) + plans.jsonl (every plan + model + ms)
 fixtures/                recorded LCU shapes + ddragon slim + EOG block (tests/mock)
@@ -209,6 +211,9 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
    plan log → coach/history/plans.jsonl.
 6. **#6** coach/notes.md — owner's replay self-review journal (first
    entry: the 27/3/3 comeback review), wired into the regen protocol.
+7. **#7** coach/qiyana-jungle-26.16.md — live-researched build/runes
+   reference with the owner's amendments (keeping Dark Harvest;
+   Gluttonous Greaves over Mercs for extended duels).
 
 ## Verifying changes
 
