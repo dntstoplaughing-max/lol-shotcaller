@@ -54,9 +54,11 @@ npm start
 | --- | --- |
 | `Ctrl+Alt+O` | Toggle mouse interaction (overlay is click-through by default; interactive mode lets you scroll/drag it, and auto-locks back to click-through after ~20s) |
 | `Ctrl+Alt+K` | Compact mode: win condition + FOCUS + the section the game clock points at |
+| `Ctrl+Alt+H` | Hide/show the overlay. **Use this instead of quitting when you're done reading** — the app keeps running invisibly, so the end-of-game stats still reach the session gate and the archive. It reappears on its own at the next champ select |
 | `Ctrl+Alt+Shift+Q` | Panic quit — kills the whole app instantly |
 
-Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` / `SHOTCALLER_HOTKEY_QUIT` in `.env`.
+Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` /
+`SHOTCALLER_HOTKEY_HIDE` / `SHOTCALLER_HOTKEY_QUIT` in `.env`.
 
 **Mouse safety, by construction:** the overlay never installs a mouse hook
 (no `forward: true` — a starved global hook is how overlays freeze the OS
@@ -196,6 +198,12 @@ dropped by `gameId` (reconnecting on the end-of-game screen doesn't
 double-count), and only games Shotcaller was running for are captured —
 op.gg still covers gaps. Move it with `SHOTCALLER_HISTORY=<path>`, disable
 with `SHOTCALLER_HISTORY=off`.
+
+**Generated plans are logged too** (`coach/history/plans.jsonl`): every
+plan's full text with the rosters it was written for, the model and effort
+that produced it, and how long it took to land. When a plan feels
+repetitive, wrong, or slow, the receipt survives the game — and comparing
+models is reading a file instead of remembering.
 
 ### Session gate & pick hints
 

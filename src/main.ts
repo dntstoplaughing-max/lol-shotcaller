@@ -18,6 +18,7 @@ import {
 } from "electron";
 import {
   appendGameRecord,
+  appendPlanRecord,
   buildGameRecord,
   describeRecord,
 } from "./coach/history";
@@ -26,7 +27,7 @@ import { ensureChampMap } from "./data/ddragon";
 import { LcuConnector } from "./lcu/connector";
 import { runMockSession } from "./lcu/mock";
 import { LiveClientPoller } from "./liveclient/poller";
-import { makePlanner } from "./planner/claude";
+import { DEFAULT_MODEL, makePlanner } from "./planner/claude";
 import { Shotcaller } from "./planner/state";
 import { loadBoostConfig, runBoost, type BoostSummary } from "./system/boost";
 import {
@@ -58,12 +59,24 @@ const HISTORY_PATH = (() => {
   if (raw === "off") return null;
   return path.resolve(process.cwd(), raw || "coach/history/games.jsonl");
 })();
+// Plan log next to the game archive: what the coach actually said, per game,
+// with the model that said it — so "that plan was repetitive/slow/wrong" is
+// debuggable after the overlay is gone, and model A/B has receipts.
+const PLANS_PATH = HISTORY_PATH
+  ? path.join(path.dirname(HISTORY_PATH), "plans.jsonl")
+  : null;
+const PLAN_MODEL =
+  DRY_RUN || !process.env.ANTHROPIC_API_KEY
+    ? "dry-run"
+    : process.env.SHOTCALLER_MODEL || DEFAULT_MODEL;
+const PLAN_EFFORT = process.env.SHOTCALLER_EFFORT || "low";
 
 const OVERLAY_WIDTH = 400;
 const OVERLAY_HEIGHT = 640;
 
 const TOGGLE_MOUSE_HOTKEY = process.env.SHOTCALLER_HOTKEY_MOUSE ?? "Control+Alt+O";
 const COLLAPSE_HOTKEY = process.env.SHOTCALLER_HOTKEY_COLLAPSE ?? "Control+Alt+K";
+const HIDE_HOTKEY = process.env.SHOTCALLER_HOTKEY_HIDE ?? "Control+Alt+H";
 const PANIC_QUIT_HOTKEY = process.env.SHOTCALLER_HOTKEY_QUIT ?? "Control+Alt+Shift+Q";
 
 // Dead-man switch: interactive mode reverts to click-through on its own, so
@@ -177,6 +190,26 @@ function setInteractive(win: BrowserWindow, value: boolean): void {
   }
 }
 
+// ----------------------------------------------------------- hide overlay
+
+// Ctrl+Alt+H: done reading the plan and want a clean screen? Hide the overlay
+// WITHOUT killing the app — the pipeline keeps running, so the end-of-game
+// stats still reach the gate and the archive (quitting the whole app mid-game
+// loses both). The overlay comes back on its own at the next champ select.
+let overlayHiddenByUser = false;
+function setOverlayHidden(hidden: boolean): void {
+  if (!overlay || overlay.isDestroyed()) return;
+  overlayHiddenByUser = hidden;
+  if (hidden) {
+    overlay.hide();
+  } else {
+    // showInactive, never show(): the game must keep keyboard focus
+    // (incident-log rule — the overlay never takes focus, ever).
+    overlay.showInactive();
+    overlay.setAlwaysOnTop(true, "screen-saver");
+  }
+}
+
 // -------------------------------------------------------- passive nudges
 
 /** Show a low-key housekeeping note in the overlay footer (id-keyed so a
@@ -270,11 +303,62 @@ async function startPipeline(win: BrowserWindow): Promise<void> {
   pipelineSc = sc;
   const poller = new LiveClientPoller((t) => sc.onClock(t));
 
+  // Plan-log context: the rosters the current plan was generated from, and
+  // when each stage started (wall-clock — the latency the player felt).
+  let planAllies: string[] = [];
+  let planEnemies: string[] = [];
+  const planStartedAt = new Map<1 | 2, number>();
+  const logPlan = (stage: 1 | 2, text?: string, error?: string) => {
+    if (!PLANS_PATH || MOCK) return;
+    try {
+      const started = planStartedAt.get(stage);
+      appendPlanRecord(PLANS_PATH, {
+        archivedAt: new Date().toISOString(),
+        stage,
+        model: PLAN_MODEL,
+        effort: PLAN_EFFORT,
+        msToComplete: started ? Date.now() - started : null,
+        allies: planAllies,
+        enemies: planEnemies,
+        ...(text !== undefined ? { text } : {}),
+        ...(error !== undefined ? { error } : {}),
+      });
+    } catch {
+      // the log is a convenience; never let it touch the pipeline
+    }
+  };
+
   sc.onEvent((evt) => {
     if (!win.isDestroyed()) win.webContents.send("sc-event", evt);
     // Mock replays must never inflate the real games-since-profile count.
     if (evt.kind === "game-result" && !MOCK) {
       noteGameFinished(profile?.generatedAt);
+    }
+    switch (evt.kind) {
+      case "lobby":
+        planAllies = evt.allies.map((a) => a.championName || "?");
+        break;
+      case "matchup":
+        planAllies = evt.allies.map((a) => a.championName || "?");
+        planEnemies = evt.enemies.map((e) => e.championName || "?");
+        break;
+      case "plan-stage":
+        planStartedAt.set(evt.stage, Date.now());
+        break;
+      case "plan-done":
+        logPlan(evt.stage, evt.full);
+        break;
+      case "plan-error":
+        logPlan(evt.stage ?? 2, undefined, evt.message);
+        break;
+      case "reset":
+        planAllies = [];
+        planEnemies = [];
+        // A hidden overlay reappears for the next game's champ select.
+        if (overlayHiddenByUser) setOverlayHidden(false);
+        break;
+      default:
+        break;
     }
   });
 
@@ -406,6 +490,9 @@ if (!gotLock) {
     });
     globalShortcut.register(COLLAPSE_HOTKEY, () => {
       overlay?.webContents.send("sc-ui", { type: "collapse-toggle" });
+    });
+    globalShortcut.register(HIDE_HOTKEY, () => {
+      setOverlayHidden(!overlayHiddenByUser);
     });
     // Panic button: kill the whole app (and any mouse state with it).
     globalShortcut.register(PANIC_QUIT_HOTKEY, () => app.quit());

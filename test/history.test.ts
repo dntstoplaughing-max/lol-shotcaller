@@ -4,6 +4,7 @@ import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   appendGameRecord,
+  appendPlanRecord,
   buildGameRecord,
   describeRecord,
   type GameRecord,
@@ -154,6 +155,28 @@ describe("appendGameRecord", () => {
     expect(appendGameRecord(file, record(null))).toBe("appended");
     expect(appendGameRecord(file, record(null))).toBe("appended");
     expect(fs.readFileSync(file, "utf8").trim().split("\n")).toHaveLength(3);
+  });
+});
+
+describe("appendPlanRecord", () => {
+  it("appends every plan without dedupe (each attempt is data)", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sc-plans-"));
+    const file = path.join(dir, "history", "plans.jsonl");
+    const record = {
+      archivedAt: NOW,
+      stage: 2 as const,
+      model: "claude-opus-5",
+      effort: "low",
+      msToComplete: 9200,
+      allies: ["Qiyana"],
+      enemies: ["Lee Sin"],
+      text: "## WIN CONDITION\nplay the map",
+    };
+    appendPlanRecord(file, record);
+    appendPlanRecord(file, record);
+    const lines = fs.readFileSync(file, "utf8").trim().split("\n");
+    expect(lines).toHaveLength(2);
+    expect(JSON.parse(lines[0])).toMatchObject({ model: "claude-opus-5", stage: 2 });
   });
 });
 
