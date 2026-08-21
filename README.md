@@ -60,6 +60,14 @@ npm start
 Override with `SHOTCALLER_HOTKEY_MOUSE` / `SHOTCALLER_HOTKEY_COLLAPSE` /
 `SHOTCALLER_HOTKEY_HIDE` / `SHOTCALLER_HOTKEY_QUIT` in `.env`.
 
+**Every hotkey press is acknowledged**: the overlay footer names the current
+state (FULL PLAN / COMPACT / Interactive) and flashes on each press — note
+that `Ctrl+Alt+K` is a toggle, so if auto-compact already collapsed the
+overlay, pressing it *expands*. If the footer doesn't react at all, the key
+never reached Shotcaller (see Troubleshooting). If a hotkey can't be
+registered at startup (another app owns the combo), the overlay says so in
+a note instead of failing silently.
+
 **Mouse safety, by construction:** the overlay never installs a mouse hook
 (no `forward: true` — a starved global hook is how overlays freeze the OS
 cursor mid-game), never takes keyboard focus (the game keeps focus even
@@ -281,6 +289,10 @@ Data Dragon (cached) ──names──▶ prompt builder ──▶ Claude (strea
   (known Electron transparency quirk on some GPUs).
 - **"Waiting for the League client…" forever** → make sure the League
   *client* (not just Riot Client) is running; Shotcaller reads its lockfile.
+- **Pressed a hotkey and the overlay footer didn't flash** → the key never
+  reached Shotcaller: another app grabbed the combo mid-session, or the game
+  intercepted it. Rebind via the `SHOTCALLER_HOTKEY_*` variables in `.env`.
+  (A combo that was already taken at startup shows as an overlay note.)
 - **Plans feel slow** → set `SHOTCALLER_MODEL=claude-haiku-4-5`, keep
   `SHOTCALLER_EFFORT=low`.
 - **No plan, status shows an API error** → check `ANTHROPIC_API_KEY` in

@@ -167,6 +167,15 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
   only — never focus); plans.jsonl gives plan-quality complaints and the
   model A/B receipts. Rubric edits invalidate the prompt cache once per
   deploy (1h TTL) — fine; keep it ≥ ~1024 tokens (prompt.test.ts floor).
+- **Hotkeys must be observable (#5)** — same field report: "tried to
+  compact it and it didn't work", undiagnosable because both failure modes
+  were invisible: registration can fail silently (register() returns false
+  when another app owns the combo — was never checked), and Ctrl+Alt+K is
+  a toggle, so after auto-compact (1:30) pressing "compact" EXPANDS —
+  reads as broken. Now: every registration failure is an overlay note
+  naming the .env override, every fire logs to console, and the footer
+  names the current state (FULL PLAN/COMPACT/Interactive) and pulses on
+  each press — "footer didn't flash" now cleanly means "key never arrived".
 - Repo layout: overlay is buildless on purpose; CJS output for
   league-connect interop; fixtures + mock + simulate exist so everything
   verifies without League or an API key (CI does exactly that).

@@ -298,3 +298,14 @@ body.collapsed #root {
 body.interactive #hint {
   color: var(--teal);
 }
+
+/* Hotkey acknowledgment: every press visibly registers in the footer, even
+   when the layout barely changes. */
+#hint.pulse {
+  animation: hintpulse 1.6s ease-out 1;
+}
+
+@keyframes hintpulse {
+  0% { color: var(--teal); }
+  100% { color: var(--muted); }
+}

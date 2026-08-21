@@ -481,21 +481,58 @@ if (!gotLock) {
 
   void app.whenReady().then(() => {
     overlay = createOverlay();
-    overlay.webContents.once("did-finish-load", () => {
-      if (overlay) void startPipeline(overlay);
-    });
 
-    globalShortcut.register(TOGGLE_MOUSE_HOTKEY, () => {
+    // Hotkeys can fail silently: globalShortcut.register returns false when
+    // another app already owns the combo, and a fire can be swallowed by the
+    // OS. Field report ("tried to compact it and it didn't work") was
+    // undiagnosable because neither case left a trace — so now every fire is
+    // logged, and registration failures become an overlay note naming the
+    // .env override.
+    const hotkeyFailures: string[] = [];
+    const registerHotkey = (
+      accelerator: string,
+      label: string,
+      envVar: string,
+      handler: () => void,
+    ): void => {
+      let ok = false;
+      try {
+        ok = globalShortcut.register(accelerator, () => {
+          console.log(`[hotkey] ${label} (${accelerator})`);
+          handler();
+        });
+      } catch {
+        ok = false;
+      }
+      if (!ok) {
+        console.log(
+          `[hotkey] FAILED to register ${accelerator} (${label}) — another app owns it; rebind via ${envVar} in .env.`,
+        );
+        hotkeyFailures.push(`${accelerator} (${label}, rebind: ${envVar})`);
+      }
+    };
+
+    registerHotkey(TOGGLE_MOUSE_HOTKEY, "mouse-toggle", "SHOTCALLER_HOTKEY_MOUSE", () => {
       if (overlay) setInteractive(overlay, !interactive);
     });
-    globalShortcut.register(COLLAPSE_HOTKEY, () => {
+    registerHotkey(COLLAPSE_HOTKEY, "compact-toggle", "SHOTCALLER_HOTKEY_COLLAPSE", () => {
       overlay?.webContents.send("sc-ui", { type: "collapse-toggle" });
     });
-    globalShortcut.register(HIDE_HOTKEY, () => {
+    registerHotkey(HIDE_HOTKEY, "hide-toggle", "SHOTCALLER_HOTKEY_HIDE", () => {
       setOverlayHidden(!overlayHiddenByUser);
     });
     // Panic button: kill the whole app (and any mouse state with it).
-    globalShortcut.register(PANIC_QUIT_HOTKEY, () => app.quit());
+    registerHotkey(PANIC_QUIT_HOTKEY, "panic-quit", "SHOTCALLER_HOTKEY_QUIT", () => app.quit());
+
+    overlay.webContents.once("did-finish-load", () => {
+      if (hotkeyFailures.length > 0) {
+        sendNote(
+          "hotkeys",
+          `Hotkey${hotkeyFailures.length === 1 ? "" : "s"} unavailable — owned by another app: ${hotkeyFailures.join("; ")}.`,
+        );
+      }
+      if (overlay) void startPipeline(overlay);
+    });
   });
 
   app.on("will-quit", () => globalShortcut.unregisterAll());
