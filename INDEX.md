@@ -49,6 +49,9 @@ coach/
 fixtures/                recorded LCU shapes + ddragon slim + EOG block (tests/mock)
 test/                    68 vitest tests: state timing, prompts, gate, boost, ddragon, coach, housekeeping, history
 scripts/install-shortcuts.ps1   Desktop/Startup shortcuts (npm run shortcut[:startup])
+tools/mouse-drill/     standalone tkinter drill (Python stdlib only, not part of the app):
+                       ranks the mouse's onboard DPI stages by click precision, feel wins;
+                       Windows accel/6-11 check with backed-up Undo; results JSON git-ignored
 boost.json               user-reviewed kill list (enabled:false until owner opts in)
 .github/workflows/ci.yml typecheck + tests + build + simulate (no Electron binary)
 ```
@@ -214,6 +217,12 @@ n≤9 splits prove nothing; post-hoc streaks are normal variance.
 7. **#7** coach/qiyana-jungle-26.16.md — live-researched build/runes
    reference with the owner's amendments (keeping Dark Harvest;
    Gluttonous Greaves over Mercs for extended duels).
+8. **#8** tools/mouse-drill — owner switched to a Razer Cobra (58g, claw)
+   from a 92g palm mouse, no Synapse: a 20-target click drill per onboard
+   DPI stage, scored precision 70 % / speed 30 % with signed over/under,
+   then "which felt best?" (feel wins). Checks Enhance pointer precision
+   + pointer speed 6/11 via SystemParametersInfo (per-user, backup first,
+   Undo). Verified headlessly: Tk under xvfb, two full scripted sessions.
 
 ## Verifying changes
 

@@ -5,3 +5,5 @@ coach/history/
 .env
 *.log
 .DS_Store
+tools/mouse-drill/mouse_drill_results.json
+__pycache__/
