@@ -48,7 +48,7 @@ coach/
                          per finished game) + plans.jsonl (every plan + model + ms)
 fixtures/                recorded LCU shapes + ddragon slim + EOG block (tests/mock)
 test/                    68 vitest tests: state timing, prompts, gate, boost, ddragon, coach, housekeeping, history
-scripts/install-shortcuts.ps1   Desktop/Startup shortcuts (npm run shortcut[:startup])
+scripts/install-shortcuts.ps1   Desktop/Startup shortcuts (npm run shortcut[:startup]) + Mouse DPI drill icon
 tools/mouse-drill/     standalone tkinter drill (Python stdlib only, not part of the app):
                        ranks the mouse's onboard DPI stages by click precision, feel wins;
                        Windows accel/6-11 check with backed-up Undo; results JSON git-ignored

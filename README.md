@@ -289,7 +289,8 @@ installs beyond Python) that finds which onboard DPI stage of your mouse you
 actually click best on: one 20-target round per stage, precision weighted over
 speed, then you pick which felt best. It also checks the two Windows mouse
 settings that matter (acceleration off, pointer speed 6/11) with a backed-up
-Undo. See [tools/mouse-drill/README.md](tools/mouse-drill/README.md).
+Undo. `npm run shortcut` also puts its icon on the Desktop. See
+[tools/mouse-drill/README.md](tools/mouse-drill/README.md).
 
 ## Troubleshooting
 

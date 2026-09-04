@@ -19,6 +19,10 @@ From the repo folder:
 
 Or copy `mouse_drill.py` anywhere and double-click it.
 
+Desktop icon: `npm run shortcut` (the same command that makes the Shotcaller
+icon) also puts **Mouse DPI drill** on the Desktop. It launches this script
+without a console window and needs Python installed first.
+
 ## What happens
 
 1. **Settings check.** Reads two Windows mouse settings and offers a
